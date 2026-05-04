@@ -1,0 +1,101 @@
+#,Song,Artist,Popularity,BPM,Genres,Album,Album Date,Time,Dance,Energy,Acoustic,Instrumental,Happy,Speech,Live,Loud (Db),Key,Time Signature,Added At,Spotify Track Id,Album Label,Camelot,ISRC
+1,"The Riddle Of The Model","Sing Street",39,103,"","Sing Street (Original Motion Picture Soundtrack)",2016-03-18,01:48,75,64,9,0,81,0,30,-9,B Minor,4,2021-12-29,1HzOXwm0P3Oeac5ccmMgCu,"undefined",10A,GBUM71601387
+2,"On the Road","Marc Streitenfeld",0,144,"b.o.","Welcome to the Rileys (Original Motion Picture Soundtrack)",2016-10-14,00:57,66,13,99,94,56,0,0,-21,B Minor,3,2021-12-29,6hLLV0DQ15Y8UHEu2chYbn,"undefined",10A,USLS51019810
+3,"Dans les yeux d'Émilie","Joe Dassin",60,149,"chanson, variété française, pop française","Les Femmes De Ma Vie",1978-08-20,03:44,46,92,32,2,60,0,0,-5,C Minor,4,2021-12-29,2kkuEKckbZRRZDbpFR5OuN,"undefined",5A,FRZ087700420
+4,"For the Damaged Coda","Blonde Redhead",0,141,"shoegaze, dream pop","Melody of Certain Damaged Lemons",2000-06-06,02:37,50,47,80,88,8,0,0,-10,C Minor,4,2021-12-29,7jA5OcunWRSYXq98puhAX8,"undefined",5A,USTG30021611
+5,"Peter Pan Death Wish","Melkeveien",0,110,"","Peter Pan Death Wish",2014-06-16,04:49,87,37,3,51,49,20,0,-11,C♯/D♭ Major,4,2021-12-29,5xWeoaMpK9fka6OLudHYjG,"undefined",3B,NO2SI1401010
+6,"Et ta mère","Zoufris Maracas",50,120,"","Prison Dorée (Nouvelle Edition)",2012-10-08,02:49,84,57,62,0,94,0,10,-7,A Minor,4,2021-12-29,2HEr6PARUW822o9VLx25mg,"undefined",8A,FR1OS1100009
+7,"Plus putes que toutes les putes","ORTIES",0,158,"électroclash","Sextape",2013-02-18,02:25,56,88,7,0,28,10,10,-5,A Major,4,2021-12-29,4hFaTMF5f8VhToD2ZAQXQw,"undefined",11B,FR0Q61300003
+8,"Tears - Remastered","Giorgio Moroder",29,112,"disco italienne, disco","Son of My Father (Remastered Bonus Track Edition)",2013-05-09,02:23,30,61,1,95,58,0,10,-9,A#/B♭ Major,4,2021-12-29,50zNfN8K9LXK8JroW6GxCa,"undefined",6B,DED467200234
+9,"Logan's Loop","Andrew Bird",0,98,"chamber pop, pop baroque, indie folk","I Want to See Pulaski at Night",2013-11-19,01:08,83,38,93,87,89,0,10,-13,G Major,4,2021-12-29,0GHhDdhjuRfQYp3Sx92yLS,"undefined",9B,US4H71311123
+10,"Mad About You - Live at Koningin Elisabethzaal 2012","Hooverphonic",55,78,"trip-hop, downtempo","With Orchestra Live",2012-10-26,03:59,39,45,61,0,19,0,70,-12,B Minor,4,2021-12-29,5YwVDOWMKH7T0KtvpPSESQ,"undefined",10A,BEB471200174
+11,"Child Music 1: Coming of Age","Jim Williams",0,113,"","Raw (Original Motion Picture Soundtrack)",2017-03-10,01:37,64,4,94,94,21,0,10,-24,A Minor,3,2021-12-29,7uVevZc3R3y6geamBzAy5D,"undefined",8A,USQ4E1702621
+12,"Simply Are","Papooz",0,99,"","Green Juice",2016-06-03,03:56,76,65,11,4,82,0,10,-12,F Major,4,2021-12-29,706zOWkDBj1YIJzQMrF4Gl,"undefined",7B,FR53O1600001
+13,"Kissing Disease","Melodium",26,180,"idm","Cerebro Spin",2008-10-21,04:17,42,37,99,76,76,0,20,-13,E Minor,4,2021-12-29,69D8GX0xVahhxNmGMmZsbj,"undefined",9A,USA560840045
+14,"Cumbia Espacial","Ondatrópica",0,91,"afrobeat latino, chicha, jazz latino, cumbia","Ondatrópica (Deluxe Version)",2012-07-16,04:05,71,89,36,76,77,0,10,-8,G#/A♭ Major,4,2021-12-29,0TEgK2OCQibruKMkHRkB4q,"undefined",4B,GBUQH1200083
+15,"Ma préférence","Julien Clerc",57,98,"chanson, variété française, pop française, house française","Jaloux",1978-02-02,03:26,56,41,76,0,29,0,0,-8,C♯/D♭ Major,4,2021-12-29,3N9Vibj1SwLn4SRtWJVDVO,"undefined",3B,FRR497800030
+16,"Step","Vampire Weekend",0,78,"indie, pop baroque","Modern Vampires of the City",2013-05-27,04:11,62,72,59,0,62,10,10,-7,A#/B♭ Major,4,2021-12-29,78J9MBkAoqfvyeEpQKJDzD,"undefined",6B,GBBKS1300003
+17,"Faith","Ada",0,125,"","Meine zarten Pfoten",2011-06-10,05:52,63,44,66,89,14,0,30,-15,F#/G♭ Minor,4,2021-12-29,2ZVm9NN2OwKhr063Uu4ml7,"undefined",11A,DEMM11100029
+18,"Un gamin","Zoufris Maracas",43,150,"","Prison Dorée (Nouvelle Edition)",2012-10-08,04:10,75,86,49,0,93,0,20,-5,E Major,4,2021-12-29,5fWRDYllVEVYWXvn3s9bM5,"undefined",12B,FR1OS1100025
+19,"Darling","Real Estate",49,133,"jangle pop, dream pop, surf music","In Mind",2017-03-17,04:20,60,89,1,1,57,0,10,-5,C Major,5,2021-12-29,36PQh1G6h7n9VWB799fXpI,"undefined",8B,GBCEL1600492
+20,"Tamacun","Rodrigo y Gabriela",0,129,"rock acoustique","Rodrigo Y Gabriela",2006-00-00,03:25,59,91,81,86,97,0,0,-7,G Major,4,2021-12-29,5Z7C03KLFHS1bMwTvm8CMy,"undefined",9B,IEACJ0400170
+21,"Utrus Horas","Orchestra Baobab",0,87,"afropop","Pirates Choice",2015-02-22,08:43,73,27,83,0,62,0,30,-15,D Major,4,2021-12-29,2tKqgQjnGgcPNTDViorQyU,"undefined",10B,GBBGU0163001
+22,"En surface","Étienne Daho,Dominique A",0,130,"variété française, pop française, chanson, house française","Les Chansons De L'Innocence Retrouvée",2013-01-01,02:19,74,35,65,0,69,0,10,-9,D Major,3,2021-12-29,1EG9gvcCJw4BYV8Nmohpeb,"undefined",10B,FRUM71301970
+23,"Hammers","Nils Frahm",0,136,"néo-classique, minimalisme, ambient","Spaces",2013-11-18,03:48,25,55,94,88,53,0,60,-16,A#/B♭ Minor,4,2021-12-29,1fEOiB4ws605vsBEKW4w65,"undefined",3A,GBWZD1305507
+24,"I Need My Girl","The National",0,126,"indie rock","Trouble Will Find Me",2013-05-27,04:05,52,44,87,7,11,0,10,-11,C Minor,4,2021-12-29,7rbCL7W893Zonbfnevku5s,"undefined",5A,GBAFL1300064
+25,"Et si demain","Zoufris Maracas",37,150,"","Chienne de vie",2015-03-02,03:26,64,64,5,0,82,0,10,-6,G#/A♭ Major,4,2021-12-29,61AKodjQ1AbSTIhI4cScqE,"undefined",4B,FR1OS1400008
+26,"Porto - Mix","Worakls",0,128,"techno minimale, techno mélodique, électro","Club St Tropez 2014",2014-06-30,05:30,68,71,0,84,20,0,10,-7,G#/A♭ Major,4,2021-12-29,2a23NJzyZneFwKmu9IDS84,"undefined",4B,FR52F1462303
+27,"Daydream In Blue","I Monster",0,154,"","Neveroddoreven",2005-01-27,03:43,55,51,2,0,39,0,10,-6,C Minor,4,2021-12-29,118kolZnbJBQvbOl0D4C71,"undefined",5A,GBDKA0300190
+28,"Some Velvet Morning","Nancy Sinatra,Lee Hazlewood",0,126,"pop baroque","Nancy & Lee",1968-01-01,03:41,28,48,50,0,35,0,10,-8,C♯/D♭ Minor,3,2021-12-29,0NWDIJCR2vOYJN8ipD8Ktb,"undefined",12A,USASE0510172
+29,"Come On","Aloha Orchestra",0,174,"","Come On",2015-04-01,02:58,56,81,4,0,82,0,10,-5,C Major,3,2021-12-29,5TSBMcxgFblSIaoS0LNb3t,"undefined",8B,FR26V1620723
+30,"L'Amour en Solitaire","Juliette Armanet",0,128,"pop française, variété française, chanson, house française","Petite Amie",2017-04-07,02:55,79,52,43,0,49,0,20,-7,F Minor,4,2021-12-29,1SnZbX70nUPoyMFQA1n41A,"undefined",4A,FRUM71613285
+31,"This Old Tune","Hugo Kant",0,124,"trip-hop, nu jazz, downtempo","I Don't Want to Be an Emperor",2011-06-27,05:13,76,64,1,79,53,0,30,-7,C♯/D♭ Major,4,2021-12-29,1x0ui02Yw277qmpelsoUPR,"undefined",3B,FR9W11101314
+32,"Get Down Saturday Night","Oliver Cheatham",0,117,"disco, post-disco","True Soul 3 CD Set",2006-01-01,04:02,85,58,25,8,96,0,0,-12,B Minor,4,2021-12-29,2NHyfIeUIRucBcHhErA3pN,"undefined",10A,USMC10111183
+33,"Pacifique","Zoufris Maracas",41,180,"","Chienne de vie",2015-03-02,06:42,65,41,44,0,92,0,10,-10,D#/E♭ Minor,3,2021-12-29,5kBAS93dHatBVw5lve0NVF,"undefined",2A,FR1OS1400007
+34,"Angels","Brian Witzig",34,164,"trip-hop","The Iron Horse",2008-01-01,05:03,54,62,14,90,34,0,30,-10,F Minor,4,2021-12-29,2TlGnMncLSQTIqajn3FYM9,"undefined",4A,ushm90813013
+35,"Alive","Marc Streitenfeld",0,168,"b.o.","Welcome to the Rileys (Original Motion Picture Soundtrack)",2016-10-14,01:28,63,19,91,93,27,0,10,-18,F Major,4,2021-12-29,66IvZUkppxpp55BcGOKm9P,"undefined",7B,USLS51019805
+36,"Where Is My Mind","Maxence Cyrin",61,142,"","Novö Piano",2010-04-12,02:45,33,11,91,96,6,0,10,-21,A Major,4,2021-12-29,4jNQkWhuzqrbqQuqanFFJ6,"undefined",11B,FR13Z0900040
+37,"In a Manner of Speaking","Tuxedomoon",0,104,"post-punk, avant-garde, new wave, coldwave, dark wave","Solve Et Coagula (The Best Of Tuxedomoon)",1993-01-15,03:28,65,21,65,0,41,0,10,-15,C Major,4,2021-12-29,4mjo20X54d6xHVD036uppT,"undefined",8B,BE6F58500530
+38,"Le départ","L'Impératrice",0,110,"house française, pop française","Odyssée",2015-10-12,01:59,54,74,6,93,50,0,0,-11,B Minor,3,2021-12-29,4wnZBdQS1D4SzMrLrTEK1y,"undefined",10A,GBMJG1509535
+39,"Blonde on Blonde","Nada Surf",38,98,"power pop","Let Go",2002-00-00,04:34,60,38,62,3,8,0,10,-12,C Major,4,2021-12-29,0I2RbIA29ywc73PmJ5pAtd,"undefined",8B,USBS50310259
+40,"Mon Amour, Mon Ami","Marie Laforêt",0,122,"chanson, pop française, jazz français, variété française","Anthologie",2017-05-04,02:15,67,52,68,0,50,0,30,-9,G#/A♭ Major,4,2021-12-29,5c4eW7XYGYQrkyo9IWyuyr,"undefined",4B,USDHM1709595
+41,"Line Of Fire","Junip",0,90,"","Junip",2013-04-22,05:39,49,74,46,55,26,0,10,-8,D Major,4,2021-12-29,16NjSvUbHpQfdVjHs7QTrS,"undefined",10B,SEWMP1300101
+42,"Mr. Blue Sky","Electric Light Orchestra",77,178,"rock symphonique, art rock","Out of the Blue",1977-00-00,05:03,39,34,65,0,48,0,20,-10,A#/B♭ Major,4,2021-12-29,2RlgNHKcydI9sayD2Df2xp,"undefined",6B,USSM17200399
+43,"Trouble Sleeping","Marc Streitenfeld",0,90,"b.o.","Welcome to the Rileys (Original Motion Picture Soundtrack)",2016-10-14,00:48,47,3,99,44,3,0,10,-28,C Minor,1,2021-12-29,2TkmGW7uCIA12MIk37fOxu,"undefined",5A,USLS51019806
+44,"Ya Rayah","Rachid Taha",0,101,"raï, gnaoui","Diwan",1998-01-01,06:13,80,89,37,0,96,0,10,-7,E Minor,5,2021-12-29,0GwawEA81IIdSCDgOJqmwc,"undefined",9A,FRZ019203450
+45,"I Go To Sleep","Peggy Lee",43,184,"jazz vocal, swing, big band, jazz","Then Was Then Now Is Now!",1965-11-15,02:02,41,23,76,0,58,0,0,-11,A Minor,3,2021-12-29,3UeJfsP9KekC5VVvIZ0444,"undefined",8A,USCA20000919
+46,"Holes","Mercury Rev",0,142,"chamber pop, shoegaze","Deserter's Songs (Instrumentals)",2011-06-14,05:55,26,39,73,3,3,0,0,-9,D Major,4,2021-12-29,2l75Z83tcDFdO2pCBXQn2S,"undefined",10B,QMWXV1100021
+47,"It's Love","Get Well Soon",26,90,"chamber pop","LOVE",2016-01-29,04:57,75,48,3,62,46,0,0,-9,G Minor,4,2021-12-29,5NlVh0caOqVu7Sv7gQyyEj,"undefined",6A,GBUM71506504
+48,"Senza Un Perché","Nada",45,109,"dance italienne","Tutto L'amore Che Mi Manca",2006-10-15,02:44,80,47,65,0,53,0,10,-8,F#/G♭ Minor,4,2021-12-29,21S6EicU7LXhS4ampzsOAQ,"undefined",11A,FR6V80408285
+49,"Girlhood","Para One",25,90,"house française","Girlhood, la bande originale de Bande de Filles",2014-10-20,02:28,58,63,48,99,8,0,0,-8,D Minor,3,2021-12-29,5WUWlMYIoMvNL35vyxNvZ5,"undefined",7A,FR6P11402360
+50,"Sunset on M.","Dardust",0,137,"","7",2015-03-03,04:19,49,39,91,96,21,0,10,-13,A Minor,4,2021-12-29,56nziqLKNZ3METexiH6zdF,"undefined",8A,ITK251410058
+51,"L'Indien","Juliette Armanet",0,130,"pop française, variété française, chanson, house française","Petite Amie",2017-04-07,03:31,73,49,21,0,36,0,20,-7,C Major,4,2021-12-29,6BfOop8edBpoolBBE9PJ5t,"undefined",8B,FRUM71613299
+52,"Le vent nous portera","Sophie Hunger",0,91,"","1983",2010-01-01,03:46,54,16,90,31,8,0,10,-18,E Minor,4,2021-12-29,2aBeuWcayV0Xqm7YFgUbAr,"undefined",9A,CH4931000020
+53,"Top Of The Hill","Conduits",14,138,"shoegaze","Electrick Children",2013-04-16,04:00,26,76,15,36,25,0,0,-9,A Major,1,2021-12-29,4WYqXms4KjWUSuvp3JDtqY,"undefined",11B,US58B1306601
+54,"I Should Live in Salt","The National",0,134,"indie rock","Trouble Will Find Me",2013-05-27,04:08,52,62,19,0,14,0,10,-7,F Major,4,2021-12-29,6gf7WF9nXNON9HdNtrdEDq,"undefined",7B,GBAFL1300055
+55,"Everybody's Gotta Learn Sometime - Demo","James Warren",0,142,"","Jim's Easy Listening Album",1995-00-00,02:53,53,33,60,5,14,0,0,-15,C♯/D♭ Minor,4,2021-12-29,6EjPats9V6bwqrrXP3Olpz,"undefined",12A,GBHMX0621016
+56,"The Quiet","Chelou",0,122,"","The Quiet",2014-12-15,03:36,52,21,76,0,17,0,10,-11,A Minor,4,2021-12-29,4ES9irjyS2WrfseUTpZoOv,"undefined",8A,GBKPL1418775
+57,"The sense of me","Mud Flow",0,76,"","A life on standby",2004-00-00,02:32,42,57,0,88,12,0,20,-9,D Minor,4,2021-12-29,3Kt4ZWZZ7Pe5o8dhaI2GPz,"undefined",7A,BE27E0302120
+58,"What He Wrote","Laura Marling",56,140,"auteurs-compositeurs-interprètes, chamber pop, folk, indie folk","I Speak Because I Can",2010-01-01,04:07,46,10,95,1,35,0,10,-16,A Minor,3,2021-12-29,2CTOa3CEBts3p1NyTVLTXU,"undefined",8A,GBAAA1000014
+59,"Drive It Like You Stole It","Sing Street",47,170,"","Sing Street (Original Motion Picture Soundtrack)",2016-03-18,03:36,52,86,0,0,75,0,10,-9,A#/B♭ Minor,4,2021-12-29,4rMN8vnOmVvQSMkXp6OLfv,"undefined",3A,GBUM71601383
+60,"Exit Music","Brad Mehldau",43,155,"jazz","Songs: The Art of the Trio, Vol. 3",1998-09-15,04:23,28,17,92,68,12,0,0,-21,E Minor,4,2021-12-29,73ik3a517Lz2W7eLWejapJ,"undefined",9A,USWB19800512
+61,"La bamba triste","Pierre Billon",0,134,"variété française","La bamba triste",1985-00-00,03:35,75,76,7,0,90,0,0,-10,C♯/D♭ Major,4,2021-12-29,0mI6UpqN6DlGXjVdlnoTn2,"undefined",3B,FRF438600440
+62,"Darwin avait raison","Féloche",34,77,"","La vie cajun",2009-00-00,02:56,70,68,36,0,87,10,10,-6,G Minor,4,2021-12-29,3AqKkDE83RUJlWfXAAKaGA,"undefined",6A,FR99S0900009
+63,"Viene de mí","La Yegros",0,85,"chicha","Viene de Mi",2013-06-17,03:50,70,62,57,0,94,0,0,-7,E Minor,4,2021-12-29,3WhlXfYRAbGZaDpM4cdHG2,"undefined",9A,GBGLW1100074
+64,"Everything","Jehro",42,94,"","Jehro",2007-02-01,03:44,86,39,50,0,80,0,0,-10,D#/E♭ Minor,4,2021-12-29,4Fa4CabWEfBQB7Lc6mZJ6G,"undefined",2A,FR90U0500001
+65,"Avenue Of Hope","I Am Kloot",0,97,"rock acoustique","Gods and Monsters",2005-04-11,04:41,66,37,47,0,31,0,10,-10,A Minor,4,2021-12-29,62lBbJOSOhxVpTr6BZ76QN,"undefined",8A,GBBND0401419
+66,"Chienne de vie","Zoufris Maracas",41,100,"","Chienne de vie",2015-03-02,04:45,70,52,54,0,79,0,10,-10,D Minor,4,2021-12-29,27jvgohavsXxZUy88a2V0S,"undefined",7A,FR1OS1400015
+67,"I Feel Love - 12  Version","Donna Summer",0,128,"disco, high energy","Bad Girls [Deluxe Edition (US Version)]",1979-04-25,08:15,69,79,7,71,96,0,10,-14,F Major,4,2021-12-29,2d6qTH3HKGwn75lpRtaEA1,"undefined",7B,USPR37800054
+68,"101","Portico,Joe Newman",40,124,"downtempo, ","Living Fields",2015-03-30,04:45,47,53,32,27,5,0,0,-8,A Minor,4,2021-12-29,2GkxGTv6AasoJ51AnYhH17,"undefined",8A,GBCFB1406904
+69,"Travel Alone","Frenic",41,80,"trip-hop, downtempo","Dr. DAD",2013-05-06,03:36,58,63,9,73,51,0,30,-9,G Major,4,2021-12-29,1i8oOEZKBzaxnEmcZYAYCQ,"undefined",9B,GBKQU1363437
+70,"God Only Knows","Adem",26,100,"","Takes",2008-05-10,02:34,62,2,91,0,59,0,0,-24,C♯/D♭ Major,4,2021-12-29,70MpxC6H4D4zRxf7R1hs5A,"undefined",3B,GBCEL0800275
+71,"Lloraras","Dimension Latina,Oscar D'León",0,96,"salsa, salsa romantica, merengue","Lloraras",2012-01-16,03:41,71,71,58,0,96,0,0,-8,A Major,4,2021-12-29,0aE9UJkWiNwxW8bGmgQFr6,"undefined",11B,US2BR9700006
+72,"Hands Up - I Love You","Madrugada",23,119,"pop norvégienne","The Best Of Madrugada",2010-11-29,05:37,73,49,64,3,59,0,0,-11,A Minor,4,2021-12-29,315zoLAH6dY5ON7zQe8cWs,"undefined",8A,NOAHV0009050
+73,"He's Simple, He's Dumb, He's The Pilot","Grandaddy",0,125,"chamber pop","The Sophtware Slump",2000-05-29,08:52,31,42,32,4,5,0,10,-12,F Major,3,2021-12-29,5AGZeZ14tRwn6oXyOBreM7,"undefined",7B,USVT10000015
+74,"Cavalier Seule","Juliette Armanet",0,110,"pop française, variété française, chanson, house française","Petite Amie",2017-04-07,02:46,68,71,19,0,53,0,0,-4,C Minor,4,2021-12-29,2sBqx1S2QEUmOoHQx12FVj,"undefined",5A,FRUM71600280
+75,"Elephant Woman","Blonde Redhead",0,167,"shoegaze, dream pop","Misery Is A Butterfly",2004-02-23,04:49,45,81,0,66,48,0,0,-6,C♯/D♭ Minor,4,2021-12-29,6umL7Ne4hbRmRlK4vjvjpi,"undefined",12A,GBAFL0300096
+76,"Qu’est-ce qu’on est bien","Les Fils du Calvaire",1,93,"pop française, house française","Rester Avec Toi",2015-11-20,04:39,65,72,17,85,88,0,10,-8,C Major,4,2021-12-29,1nFMwYWx6NYADzS8xohUDM,"undefined",8B,FR2T01500047
+77,"Once Around The Block","Badly Drawn Boy",0,123,"chamber pop, britpop","Once Around The Block",2000-11-13,04:04,39,69,72,2,85,0,0,-9,F Major,3,2021-12-29,2NZDGltjD2gQoF5B0TUJdT,"undefined",7B,GBBKS0000093
+78,"Bullets","Tunng",0,95,"","Good Arrows",2007-08-19,05:58,76,42,69,0,57,0,20,-8,F#/G♭ Minor,4,2021-12-29,2LbuHO4j0RQrkBOMXsdSgV,"undefined",11A,GBJXP0700404
+79,"Strange Weather","Anna Calvi,David Byrne",44,137,"art rock, art pop","One Breath (Deluxe Edition)",2014-10-27,05:34,28,33,87,4,4,0,10,-10,A#/B♭ Minor,4,2021-12-29,2CwHFaG0rLOGpYDm9ShLME,"undefined",3A,GBCEL1400228
+80,"Some Needs","Rover",38,125,"","Let It Glow",2015-11-06,03:44,61,57,74,0,29,0,10,-8,G Minor,4,2021-12-29,1A8v1TY2XzfFKdcSeebVbS,"undefined",6A,FR6F31505720
+81,"Gnossienne No. 1","Chicha Libre",0,119,"chicha, cumbia","Sonido Amazonico!",2008-00-00,04:33,67,39,70,82,77,0,0,-15,C♯/D♭ Major,4,2021-12-29,7gxKWSbczyS6RuyjZdTG5t,"undefined",3B,USCNP0701714
+82,"C'est la vie","Coralie Clement",28,92,"jazz français, chanson, pop française","Toystore",2008-10-06,02:28,66,63,73,0,73,0,0,-6,D Minor,4,2021-12-29,7zxkXXjlLi5YKUsRzfKoG6,"undefined",7A,FR9W10801109
+83,"I Got You Babe","Sonny & Cher",57,111,"","The Beat Goes On: Best Of",1991-11-05,03:13,62,71,25,0,62,0,10,-9,F#/G♭ Major,3,2021-12-29,2SWBfqj1FrS8t8z56G55rP,"undefined",2B,USAT27500019
+84,"Jamais content","Alain Souchon",33,109,"variété française, chanson, pop française, house française","Jamais Content",1977-10-10,04:28,77,40,3,0,55,10,30,-16,C Major,4,2021-12-29,1VVii34OxGKnBd1hRGfHkB,"undefined",8B,FRZ057700020
+85,"A View to a Kill","L'Impératrice",0,152,"house française, pop française","Sonate pacifique - EP",2014-09-16,05:13,46,70,63,89,23,0,10,-8,G#/A♭ Minor,4,2021-12-29,6JC9QBBypre6T6B5zzbLDf,"undefined",1A,FRPIN1400280
+86,"Love Theme From  The Godfather ","Nino Rota",0,69,"","The Godfather (Soundtrack)",1991-01-01,02:38,20,22,93,92,9,0,0,-13,C♯/D♭ Major,4,2021-12-29,7Es2gcDpA0ma6zEqgP6Wuc,"undefined",3B,USMC17251835
+87,"Rio - 2009 Remaster","Duran Duran",61,141,"new wave, synthpop","Rio (Collector's Edition)",1982-05-10,05:37,54,87,4,0,68,0,0,-7,A Major,4,2021-12-29,43eBgYRTmu5BJnCJDBU5Hb,"undefined",11B,GBAYE0901087
+88,"Sunday Morning","The Velvet Underground,Nico",0,106,"protopunk, art rock","The Velvet Underground & Nico 45th Anniversary (Super Deluxe Edition)",1967-03-12,02:55,50,41,11,0,55,0,0,-13,A#/B♭ Minor,4,2021-12-29,1ibXPHlgwayYg2p3Fjda5g,"undefined",3A,USPR36702759
+89,"Veins","Palace",48,110,"","Veins",2014-07-15,04:29,43,27,35,4,11,0,10,-10,C Major,3,2021-12-29,1UsXMQwIzCKSk6oIdRE5Jc,"undefined",8B,GBLVL1400017
+90,"Flocon de neige","Worakls",46,115,"techno minimale, techno mélodique, électro","Flocon de neige",2014-08-22,06:20,67,54,55,90,4,0,0,-12,A Minor,4,2021-12-29,5vDsrWr8An3AMedExXTXO0,"undefined",8A,DEAR41418241
+91,"Blueshirt","Lucien Kimono",0,90,"","Lucien & The Kimono Orchestra",2016-10-28,03:26,64,54,42,83,42,0,10,-10,C Minor,4,2021-12-29,7iNpIlWcK5b6TfKkBqHc0O,"undefined",5A,FRPIN1600230
+92,"Laissons entrer le soleil","Julien Clerc",0,119,"chanson, variété française, pop française, house française","Inédits 68-97",1998-00-00,03:44,54,74,5,0,74,0,0,-7,B Minor,4,2021-12-29,2IvsJEIjx8fWfkTWDCuEYm,"undefined",10A,FRZ110701009
+93,"After Laughter (Comes Tears)","Wendy Rene",48,187,"northern soul","After Laughter (Comes Tears)",2005-02-08,02:59,42,17,17,0,36,0,10,-14,C♯/D♭ Minor,4,2021-12-29,1IXa70EPedlpafPL7Ood2z,"undefined",12A,USAT20003822
+94,"Première Gymnopédie","Erik Satie,Alexandre Tharaud",53,76,"piano classique, classique","Satie: Avant-dernières pensées (Bonus Track Version)",2009-01-20,03:24,59,1,100,95,31,0,0,-35,G Major,3,2021-12-29,4jep6dMPP0z7HrN375InoL,"undefined",9B,FRZ140811030
+95,"Friends Of Friends","Hospitality",0,105,"","Hospitality",2012-02-13,03:07,68,49,5,0,46,0,0,-6,B Minor,4,2021-12-29,5FYdQBLz4rYCufmzuGIv4C,"undefined",10A,GBCKK1226102
+96,"Trauma","NTO",30,127,"techno mélodique, techno minimale, techno, électro, house mélodique","Trauma EP",2010-00-00,13:30,34,54,1,90,25,0,0,-9,D Major,4,2021-12-29,4jTlhnW8wp7ANU36iRgbQK,"undefined",10B,FR6V80361368
+97,"La Loi de Murphy","Angèle",0,192,"pop française, variété française, chanson","La Loi de Murphy",2017-10-23,03:13,50,75,13,0,25,30,20,-8,D Minor,4,2021-12-29,1LchKqlk2N6Rk5tpk3xDe7,"undefined",7A,TCADH1799031
+98,"Freaking Out the Neighborhood","Mac DeMarco",0,143,"indie","2",2012-10-16,02:53,56,83,6,3,85,10,30,-6,G#/A♭ Minor,4,2021-12-29,25SJaCCPiosugnlY53VhRG,"undefined",1A,QMMZN1200048
+99,"Graceless","The National",0,172,"indie rock","Trouble Will Find Me",2013-05-27,04:35,44,85,15,73,35,10,10,-6,C♯/D♭ Minor,4,2021-12-29,20byjuLA86KfF9qjzxiwWG,"undefined",12A,GBAFL1300062
+100,"Colorblind","Counting Crows",0,108,"","This Desert Life",1999-01-01,03:23,35,23,96,9,7,0,10,-13,F Major,4,2021-12-29,1edno116shO09z3PIlPVA5,"undefined",7B,USIR19915025

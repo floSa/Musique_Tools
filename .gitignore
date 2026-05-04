@@ -1,0 +1,12 @@
+# Environnements Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Divers
+*.log
+.DS_Store

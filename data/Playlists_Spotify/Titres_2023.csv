@@ -1,0 +1,101 @@
+#,Song,Artist,Popularity,BPM,Genres,Album,Album Date,Time,Dance,Energy,Acoustic,Instrumental,Happy,Speech,Live,Loud (Db),Key,Time Signature,Added At,Spotify Track Id,Album Label,Camelot,ISRC
+1,"Russian Girl","Женя Любич",53,155,"","C'est la vie",2011-12-09,02:26,68,48,74,0,32,0,10,-8,A Minor,4,-,2Fs2EzT6lR7b2OCu0zzjQL,"undefined",8A,FR2X41694431
+2,"hotline (edit)","Billie Eilish",75,57,"","hotline (edit)",2023-05-09,01:00,52,25,82,86,30,0,10,-16,A Minor,4,-,0WFryfbNKPXVtVQlz5dZ8H,"undefined",8A,USUM72307244
+3,"The Beach (Instrumental Sped Up)","mxpheebz",44,82,"","The Beach (Instrumental Sped Up)",2022-09-15,03:13,61,27,71,94,14,0,0,-17,C♯/D♭ Major,4,-,5QULCdTzKQY46QNNMXMWa6,"undefined",3B,TCAFU2166083
+4,"Feels so Good #2","Junior Kimbrough",30,157,"blues, country blues, blues classique","First Recordings",2009-00-00,02:00,53,67,73,2,64,0,10,-6,F Minor,4,-,0IlJfv6ACOvNyjd9vvgKzm,"undefined",4A,USFP70921105
+5,"To the Moon","junodream",43,108,"","To the Moon",2018-05-08,02:50,71,35,35,0,85,0,0,-15,E Major,4,-,7KTeCmYOof8NML28Lc9dWo,"undefined",12B,GBKPL1805767
+6,"Le retour en bateau","Kid Francescoli",40,108,"","Azuro (Bande originale du film)",2022-03-11,02:44,69,71,0,79,73,0,10,-9,F Major,4,-,5W5yReDkiROArWbkqNHJWC,"undefined",7B,FRU452200004
+7,"Note to Self","Mild High Club",48,98,"pop psychédélique","Timeline",2015-09-18,02:20,71,38,41,0,68,0,10,-10,A#/B♭ Minor,4,-,4jByWjGKnLvbd2YZTOcHep,"undefined",3A,US2S71504003
+8,"Sister Owls","Monster Rally",54,82,"exotica","Adventures on the Floating Island",2019-09-20,01:53,71,68,65,85,83,0,10,-9,F Minor,4,-,2Sl3u7MP7DA48URZZ39XrK,"undefined",4A,USA2B1902258
+9,"Cry for Another","Claude Fontaine",33,90,"","Claude Fontaine",2019-04-26,03:39,85,49,66,9,92,0,0,-9,C Minor,4,-,6bIXC6aTikHzCh2P8wlbcD,"undefined",5A,USD8D1959001
+10,"Bamboo and Rocks","Sven Wunder",32,94,"","Wabi Sabi",2020-04-27,02:59,64,54,43,84,78,0,10,-13,C♯/D♭ Major,4,-,7ndM7fNwsl4lMOoqYjknyD,"undefined",3B,SEYJB2000108
+11,"Smokeless Fire","Octave Lissner",0,144,"","Octave Lissner",2019-10-08,02:43,74,51,13,18,13,0,10,-12,G Major,4,-,0TCbPtoHm1OLJXevvCqUtZ,"undefined",9B,TCAEG1967008
+12,"Duvet","bôa",84,93,"","Twilight",2001-03-21,03:23,58,89,19,0,71,0,0,-9,B Minor,4,-,42qNWdLKCI41S4uzfamhFM,"undefined",10A,USCGJ0659337
+13,"The Girls","Albertine Sarges",0,120,"","The Sticky Fingers",2021-01-29,04:19,95,56,22,4,96,0,20,-8,D Major,4,-,7kvcDhQZKlyUeh67hEIc34,"undefined",10B,GBGEY2000094
+14,"What Does It Mean To Be Free","Thomas Azier",24,140,"","The Inventory Of Our Desire",2023-02-10,06:56,48,65,20,39,43,0,10,-13,F#/G♭ Minor,4,-,58YJovqkEGgsNzjYjIzWXb,"undefined",11A,NLY9M2200006
+15,"Drifting","Frank Popp Ensemble,Lucy Kruger",0,140,"northern soul, ","Shifting",2023-01-27,05:22,45,48,31,2,33,0,0,-9,C Major,4,-,6ettpZedsYYa1kJ7H4QAU4,"undefined",8B,DEUV42200005
+16,"Andy Warhol","Dana Gillespie",21,84,"boogie-woogie, boogie, swing","Andy Warhol",2009-00-00,03:04,30,68,20,0,61,0,0,-12,E Minor,4,-,58YnFSfPGDFPmRRCya5IMA,"undefined",9A,GBBLY0901813
+17,"Don't Give Up","Foreign Fields",35,114,"","The Beauty of Survival",2020-03-20,03:53,76,39,88,38,74,0,10,-14,D#/E♭ Major,4,-,6rGBWSCtMqurKFEvpa2lW2,"undefined",5B,GB6TW1900154
+18,"Petit garçon","Léman",42,161,"chanson, variété française","Petit garçon",2023-03-10,02:19,70,57,47,0,73,0,0,-5,E Minor,4,-,4zZ1GBzdbBDzD5OpAHmSQV,"undefined",9A,FR9W12302806
+19,"Tears In The Typing Pool","Broadcast",53,153,"dream pop, shoegaze","Tender Buttons",2005-09-19,02:12,30,15,92,0,39,0,10,-13,A Minor,4,-,2ckhAiLT5eV5blWvyDs8Lh,"undefined",8A,GBBPW0500075
+20,"Flowers","Monsterheart",23,130,"","The New",2021-01-01,03:41,49,52,0,42,40,0,10,-9,F Minor,4,-,0AibvwA0uakL79QA8q7EHO,"undefined",4A,QZDA72077044
+21,"O.K.","Whatever, Dad",49,131,"","Grade Pending",2015-07-18,01:42,66,13,62,17,24,0,60,-18,G Major,4,-,3079KgxQ0kntfz3qTunWq6,"undefined",9B,USQY51792219
+22,"Titanic","Σtella,Redinho",56,96,"","Up and Away",2022-06-17,03:06,76,49,52,34,82,0,10,-6,C Minor,4,-,7lirdOcXuV6nIPH1NTNwW8,"undefined",5A,USSUB2148307
+23,"Bel Epoque","Loopa Scava,Cayetano,Pelina",46,113,"nu jazz, ","Up and Down",2008-03-21,01:40,69,29,82,85,29,0,10,-21,C Major,3,-,4BAHBBbMDU91mDDInZuA8O,"undefined",8B,ATE610800056
+24,"Mrs Magic","Strawberry Guy",79,133,"bedroom pop","Mrs Magic",2019-07-24,03:28,47,63,16,37,37,0,30,-7,G#/A♭ Major,4,-,0TZejo18HlJ86OrWNsXKnw,"undefined",4B,GBJGV1900102
+25,"Plage de la concurrence","Ojard",29,120,"","Euphonie",2017-09-29,02:37,56,33,86,90,27,0,10,-14,G#/A♭ Major,4,-,0v958gFhMcpQLGtgKvbdTa,"undefined",4B,FR9W11718069
+26,"CouCou Anne","Musette",1,166,"","Drape Me In Velvet",2012-01-22,04:04,54,65,95,93,75,0,10,-13,F#/G♭ Minor,4,-,12m8sOsy7cZ41gqpX3uO3z,"undefined",11A,SEWQN1100301
+27,"Waltzing Back","No Vacation",62,105,"bedroom pop, dream pop","Waltzing Back",2021-07-14,03:12,56,58,0,92,49,0,0,-8,G Minor,4,-,3JcvpTfI64SmXxUl7XUvQI,"undefined",6A,USEZ61916907
+28,"Painted Floors","ÄNN",17,110,"","A.M. Forever",2021-05-07,04:24,38,60,45,31,46,0,0,-9,A#/B♭ Major,4,-,6gUAy5qEHUCjZRXXFEb71t,"undefined",6B,ATEU31800100
+29,"When Dreams Come True","Baptiste Thiry",18,94,"","Love Marks",2014-01-01,02:08,47,54,94,94,3,0,0,-11,E Minor,3,-,5KifGjrRaMcsMCyZ77KEgw,"undefined",9A,FR6V82519158
+30,"Former Self","Nation of Language",30,180,"synthpop","A Way Forward",2021-11-05,05:10,55,44,88,71,52,0,10,-12,G#/A♭ Minor,3,-,572oBgjtrXpdrkXSaSlyvO,"undefined",1A,USLZJ2193701
+31,"I Woke Up Today","Port O'Brien",22,134,"","All We Could Do Was Sing",2008-01-01,03:21,57,91,3,0,95,0,20,-5,F Major,4,-,4va645L73FmWWMpMGSHcyw,"undefined",7B,usmsp0800001
+32,"Buka","Hania Rani",40,103,"néo-classique","Home",2020-05-29,05:02,60,26,98,94,40,0,10,-20,D Major,3,-,366WRwY3T7CmjQPXFXe2sS,"undefined",10B,GBVTB2037002
+33,"Schweden Espresso","Sofie Royer",17,158,"","Harlequin",2022-09-23,04:28,55,38,38,0,60,0,20,-8,F#/G♭ Major,4,-,0LokKpZ75o151vBOJpDS8b,"undefined",2B,US2S72214056
+34,"Blue Skies","Les doigts de l'homme",23,127,"jazz français, swing","1910 (Jazz manouche)",2009-00-00,04:40,81,61,93,90,85,0,20,-11,G Major,4,-,04bBCLYG15wZsplk3y8nQI,"undefined",9B,FR80W1000020
+35,"Good Thing","Maple Glider",40,112,"indie folk","To Enjoy is the Only Thing",2021-06-25,04:12,70,20,77,0,14,0,10,-12,G#/A♭ Minor,4,-,1avgH7udg2X4mx82V1ChDC,"undefined",1A,AUVWE2000764
+36,"Sweet Marie","The Walters",12,204,"","Young Men",2015-12-23,02:17,25,43,91,65,25,0,10,-8,A Major,4,-,7MBSbBrx0TvBYyKEcpGcJb,"undefined",11B,TCACK1592341
+37,"Mio","Sofie Royer",30,130,"","Mio",2023-05-10,04:13,70,67,31,1,54,0,10,-9,F Major,4,-,6cl3amT9HIxuSYxNZnPmlY,"undefined",7B,US2S72276010
+38,"Youngblood","Jonathan Jeremiah",27,127,"","Horsepower For The Streets (Deluxe Version)",2023-03-31,03:34,65,67,12,0,63,0,0,-8,A#/B♭ Minor,4,-,1dda1Ze6z4IwBgQmZ7duyp,"undefined",3A,DEG442291092
+39,"Getting' Away with Your Gal (feat. Bill Callahan)","The Echocentrics,Adrian Quesada,Bill Callahan",26,176,"retro-soul, country alternative","Echo Hotel",2016-05-20,02:04,52,69,81,0,37,20,0,-6,B Minor,4,-,7n5MjZGXeZ59Or8GtK2jkb,"undefined",10A,US66W1600009
+40,"Don't Forget About Me","Alice Boman",34,126,"","Dream On",2020-01-17,03:06,61,24,80,42,66,0,10,-13,F Minor,4,-,5qUujOsbcVq8oo3ndNET6e,"undefined",4A,GBENL1902475
+41,"Restless","Abel Korzeniowski",37,134,"","Nocturnal Animals (Original Motion Picture Soundtrack)",2016-11-04,01:21,16,33,91,74,4,0,10,-17,B Minor,4,-,3kfv7UwooO8rulCxDfZyxf,"undefined",10A,USQ4E1602433
+42,"No Games","Pinky Perzelle,Eda Eren",20,95,"","No Games",2022-07-22,05:38,75,64,27,4,72,0,10,-8,B Minor,4,-,64j1qOtgZvBJW7MMnbGRED,"undefined",10A,FRX202280035
+43,"The Fight","Silly Boy Blue",36,165,"","But You Will",2018-10-26,04:00,56,56,20,60,36,0,10,-7,G Major,4,-,1GkGj3xa9SVzx9liB5CH08,"undefined",9B,FR9NT1800020
+44,"The Paper","Leyya",26,170,"","The Paper",2020-10-21,04:21,59,71,41,2,78,0,0,-7,B Minor,4,-,4Mu1MulNoUsCO6NkF0fWjm,"undefined",10A,ATT802020001
+45,"La leçon particulière - Bande originale du film  La leçon particulière ","Francis Lai,Christian Gaubert",67,150,"stutter house, ","Mayerling",2003-01-01,01:45,19,47,1,91,42,0,20,-8,D Minor,3,-,4OWa2dOlmtvMDhFrFL0QA1,"undefined",7A,CH1956980330
+46,"I’m So Tired","jennylee",32,125,"","Heart Tax",2022-05-27,03:59,74,23,46,19,9,0,10,-11,G Major,4,-,6EB3RxV5SWS53kCVwWUUms,"undefined",9B,GB2DY2000007
+47,"Egyptian Cadillac","Alex Izenberg",15,95,"pop baroque","I'm Not Here",2022-05-20,03:24,82,53,77,4,93,0,20,-11,B Minor,4,-,6UwSrLWoYtvvjtWcRXPvvJ,"undefined",10A,GBCEL2100379
+48,"Stillstand - Radio Edit","Wiener Planquadrat",23,115,"indie dance","Stillstand",2021-09-03,03:18,67,68,2,72,26,0,20,-7,F Major,4,-,4Oc5x8CV7l4NRDwYaYQ7Rz,"undefined",7B,FRX282131211
+49,"You Make Me Feel (Mighty Real)","Sylvester",61,131,"disco, high energy, post-disco","Step II",1978-01-01,06:40,63,85,3,30,96,0,0,-11,F Minor,4,-,0RnCUYXa7jhgTXtiMXF2PQ,"undefined",4A,USC4R2002968
+50,"You've Lost Me There","Cardinal,Eric Matthews, Eric Matthews",3,78,"chamber pop, pop baroque, jangle pop, ","Cardinal (Reissue)",1994-00-00,04:28,29,28,78,35,16,0,0,-12,C Major,4,-,0WQhpjYJ6u0HYwG1CXnhKA,"undefined",8B,USBDH0510027
+51,"Feeling Bad Forsyth Street","Sofie Royer",18,144,"","Harlequin",2022-09-23,03:44,52,43,30,0,29,0,10,-8,C Major,4,-,4DGiTzPPKAbijVhJtmmqCL,"undefined",8B,US2S72276005
+52,"Witches","Alice Phoebe Lou",65,73,"","Witches",2020-03-13,03:15,58,72,3,0,73,0,10,-6,G#/A♭ Major,4,-,5BBK1WoaiD3b3sJ2UysLuM,"undefined",4B,GBKPL2089608
+53,"New York","Acid Ghost",45,94,"","Vacation II",2016-02-14,02:49,66,46,89,95,57,0,10,-9,A Minor,4,-,7mHVncGZz23AWFGfvHf70Z,"undefined",8A,TCACM1615398
+54,"From the Subway Train","Vansire",70,72,"bedroom pop","Angel Youth",2018-04-26,00:57,39,43,53,2,11,0,20,-10,F Minor,4,-,0qOCy2LqvdkMora7eZsJhQ,"undefined",4A,QZCE61802033
+55,"Nancy From Now On","Father John Misty",64,107,"chamber pop","Fear Fun",2012-05-01,03:54,54,65,53,4,50,0,0,-9,C Major,4,-,77RNVzAVwqWiZrZuWqMV2i,"undefined",8B,USSUB1297002
+56,"In My Room","The Walker Brothers",25,179,"pop baroque","Portrait",1966-08-26,02:32,27,36,76,0,33,0,0,-10,G Minor,3,-,0bijTGqzGGAwkdnSIOePjT,"undefined",6A,USMR16687598
+57,"Apricots","Findlay",40,120,"","The Last Of The 20th Century Girls",2022-05-13,01:40,74,62,84,69,73,0,10,-7,G Major,4,-,3o1LSA7Dz71jRt9xqtsgKj,"undefined",9B,GBGLW2100980
+58,"100","Camp Claude",0,200,"","Hero",2016-10-28,03:16,42,69,12,0,63,0,10,-6,C Major,4,-,7FketMWJ6VH8fHkuyLI3wS,"undefined",8B,FR96X1645923
+59,"Strange World","Someone,Tessa Rose Jackson",14,166,"","Shapeshifter",2021-09-10,04:28,46,29,47,65,31,0,10,-13,C Major,3,-,0DxyOGNxMpgBUzwPPQUK9B,"undefined",8B,NL5LG2100002
+60,"Leonie","Alicia Edelweiss",27,108,"","When I'm enlightened, everything will be better",2019-09-06,04:45,55,8,89,0,38,0,20,-10,F Major,4,-,1eH8ZEe3AxjW3JvXOWDmPD,"undefined",7B,ATDP31901001
+61,"When They Fight, They Fight","Generationals",54,120,"","Con Law",2009-07-21,03:20,76,90,24,0,97,0,10,-2,B Minor,4,-,0zqmyB1prgGGiOS10sjH8A,"undefined",10A,USNNZ0900143
+62,"Come to Pass","Mutual Benefit",20,113,"","Thunder Follows the Light",2018-09-21,02:42,54,48,87,42,26,0,0,-12,A Major,4,-,45Qfh6B5fTog4NzT3lajX4,"undefined",11B,GBKZV1800050
+63,"Au début","LE NOISEUR",25,92,"pop française, house française","Du bout des lèvres",2015-03-16,01:33,48,74,28,96,46,0,0,-8,F#/G♭ Minor,4,-,7cKKiK0mMOXZzcyQp4hNxk,"undefined",11A,FRX851400384
+64,"Calypso","Saturne,Arthur Simonini,John Ferrère,Gabriel Mimouni,Ulysse Cottin",26,144,"pop française, ","Saturne",2015-02-25,02:16,57,51,2,95,37,0,10,-12,G Minor,4,-,1Kc54UFWitervWpwr1Y4fm,"undefined",6A,FR20O1400016
+65,"Cod Liver Oil and Orange Juice","Meskerem Mees",0,181,"","Caesar",2022-11-10,03:56,39,26,88,0,63,0,10,-11,D Minor,3,-,1y8tHomjAnGLALB8TH5oew,"undefined",7A,BEKE52100065
+66,"Line Of Fire","Junip",48,90,"","Junip",2014-03-01,05:39,48,75,47,52,28,0,10,-8,D Major,4,-,1t6zwEOPQUz9QIjlwZ5UGF,"undefined",10B,SEWMP1300101
+67,"Holy Branches","Radical Face",39,115,"indie folk","The Family Tree: The Branches",2013-10-22,03:37,66,46,39,0,35,0,0,-9,C♯/D♭ Major,4,-,7KPMPpvv9vLMseRlULkahG,"undefined",3B,CAN111300372
+68,"Monster","Out Run",34,116,"synthwave","Monster",2023-01-20,03:02,65,82,0,7,54,0,0,-6,G#/A♭ Major,4,-,3fZzx7hWJ0UoYOhGiAev25,"undefined",4B,QZMHN2294590
+69,"Love Is Beautifully Painful - Ghost Duet Version","Darkrose",45,133,"","Love Is Beautifully Painful (Ghost Duet Version)",2023-03-25,02:45,24,20,95,92,16,0,10,-13,G Major,3,-,76NLHv4D8SuERENtBaqrKA,"undefined",9B,QZMEV2323745
+70,"Time Walk","Bnny",42,119,"","Everything",2021-08-20,01:33,62,52,5,78,92,0,0,-9,D Major,4,-,2GmJzA4SwQityiYlFS7mCJ,"undefined",10B,USA2B2101393
+71,"Caro Diario: Il Campo Di Pallone","Nicola Piovani",0,79,"","Caro Diario un Film Di Nanni Moretti",2006-01-01,01:08,44,23,91,98,15,0,10,-20,D Minor,4,-,1jDHUzKrOyjO5fyGRFD9Ry,"undefined",7A,FR6V80628838
+72,"Dress Up in You","Belle and Sebastian",37,108,"chamber pop, pop baroque","The Life Pursuit",2006-02-06,04:23,68,40,54,21,50,0,10,-8,C♯/D♭ Major,4,-,0MvsgXVgvI2oXvIRJNsvNC,"undefined",3B,GBCVZ0501392
+73,"It's About Time","Sky Adler",21,110,"","It's About Time",2022-11-21,04:03,76,42,25,0,61,0,10,-10,G#/A♭ Major,4,-,0plbSDugi1FZzzX0A5CmSB,"undefined",4B,FRU702200283
+74,"Insanely Alive","Wolfgang Tillmans",14,123,"","Insanely Alive / Late For The Webinar",2021-10-29,03:47,47,35,83,1,34,0,10,-12,C Minor,4,-,4oshLpojoNV21T3oSE1g79,"undefined",5A,DECY52102029
+75,"I'm Boring","My Ugly Clementine",32,80,"","I'm Boring",2020-12-11,03:20,59,53,4,0,49,0,50,-6,A Major,3,-,3ctzBJ2yOva67pX2PSaS1o,"undefined",11B,ATT802021001
+76,"Everyone Is Moving To Berlin","Lail Arad",28,113,"","Someone New",2010-06-15,02:46,81,40,59,0,65,0,20,-6,C♯/D♭ Major,4,-,5DXKAsJTkfJGiAYiClfzHs,"undefined",3B,FR0X20900003
+77,"Rio - 2009 Remaster","Duran Duran",61,141,"new wave, synthpop","Rio (Collector's Edition)",1982-05-10,05:37,54,87,4,0,68,0,0,-7,A Major,4,-,43eBgYRTmu5BJnCJDBU5Hb,"undefined",11B,GBAYE0901087
+78,"Nyt on sinun aikasi","Joose Keskitalo",22,78,"pop finlandaise","En lähde surussa",2019-01-11,04:16,70,44,30,0,70,10,30,-8,C♯/D♭ Minor,4,-,44H49wGTWczf0IwryD9vhI,"undefined",12A,FIHL21900002
+79,"Tonight","Rover",36,125,"","Rover",2012-00-00,03:17,64,70,1,62,18,0,10,-6,E Major,4,-,0RnFZLujyoo21SzDpPkD3U,"undefined",12B,FR6F31100890
+80,"75 beats per minute","Romain Axisa",0,75,"","75 beats per minute",2023-02-20,03:03,75,14,98,64,53,0,10,-9,C Minor,4,-,0ZCWpQk4Fs7dxSLam0pDY8,"undefined",5A,QZDA62318261
+81,"The Mighty Rio Grande","This Will Destroy You",48,112,"post-rock, math rock","S/T",2007-01-08,11:16,26,17,24,87,4,0,0,-12,C♯/D♭ Major,4,-,37HI0imp0t6a0MBS00lPkS,"undefined",3B,US76L0710410
+82,"You Always Say","French 79,Olivia Merilahti,Prudence",36,117,"house française, synthwave","TEENAGERS",2023-05-05,04:40,38,62,76,86,3,0,10,-16,G#/A♭ Major,3,-,0DlLtJqO4hVBcqhu9jtBIv,"undefined",4B,FRR642201734
+83,"Deceptacon","Le Tigre",69,161,"électroclash","Le Tigre",1999-01-11,03:04,60,87,6,1,66,0,10,-3,A Minor,4,-,4l0HxP8wm5iWHqo9myvFsm,"undefined",8A,TCABE1211301
+84,"No Proper Life","Cari Cari",25,138,"","Welcome To Kookoo Island",2022-09-16,02:45,63,66,8,85,57,0,50,-7,A Major,4,-,3CUd4oB20LXnoWlzQDxTgy,"undefined",11B,FRX202235629
+85,"Le monde a changé","Toukan Toukän",41,120,"pop française","Sirocco",2022-11-18,03:20,66,58,2,0,35,0,10,-8,B Minor,4,-,3CpWn7KRaiSSn8e51715Nd,"undefined",10A,FR9W12215699
+86,"Modern Nostalgia","The Animen",30,138,"","Same Sun / Different Light",2020-03-20,03:35,62,88,5,0,88,0,30,-5,E Major,4,-,5HO6OULqiCpJaNZEq18r7T,"undefined",12B,CH4931900010
+87,"Ne vous mariez pas les filles","Michèle Arnaud",14,135,"pop française, chanson","Disque Pathé",2006-03-03,01:40,37,59,57,0,61,0,30,-8,F Major,4,-,0GWWBc2ekTlkC6LrIB13Zf,"undefined",7B,FRZ116403140
+88,"The Strange One","Abel Korzeniowski",30,171,"","Emily: Original Motion Picture Soundtrack",2022-11-16,01:00,27,28,97,78,38,0,10,-14,E Minor,4,-,5HdI4hj7DvV1kf2mzdxAPX,"undefined",9A,UKSK61900185
+89,"Côte des Basques","The Offline",38,73,"beats jazz, jazz funk","En clair-obscur",2022-07-08,03:08,72,35,1,84,76,0,0,-11,E Minor,4,-,28a8KWzzQ7zZwHDtmUPo7d,"undefined",9A,FRIDO2210771
+90,"Aeroplane Bathroom","Gordi",39,90,"","Our Two Skins",2020-06-26,05:44,36,26,98,1,46,0,10,-14,E Major,5,-,7h4zBf5NntSiGrYy2hmDJE,"undefined",12B,US38Y2035824
+91,"Indifférence","Les doigts de l'homme",27,105,"jazz français, swing","1910 (Jazz manouche)",2009-00-00,05:39,70,52,97,90,49,0,0,-13,A Minor,3,-,0R45MxIs2TvU9gBIPBOBJ2,"undefined",8A,FR80W1000110
+92,"There Can Be Only One","Cass McCombs",38,86,"pop baroque, auteurs-compositeurs-interprètes","Big Wheel and Others",2013-10-14,04:17,61,69,35,22,86,0,20,-14,A Major,4,-,4YNGgPmj7nkrCKQpaGRxav,"undefined",11B,GBCEL1300192
+93,"Promises","Bnny",39,82,"","Everything",2021-08-20,01:55,51,73,15,9,61,0,20,-11,A Major,4,-,5KAA70376FCuZChWvoNXdv,"undefined",11B,USA2B2101391
+94,"I Know It's Pathetic but That Was the Greatest Night of My Life","Sun Kil Moon",37,139,"slowcore","Among the Leaves",2012-05-29,01:47,49,6,95,0,56,0,10,-22,D#/E♭ Major,3,-,0Aa0RPs8CmHNkP50nrE1Gi,"undefined",5B,USA2B1200126
+95,"Mother Nature's Bitch","Okay Kaya",54,126,"art pop","Watch This Liquid Pour Itself",2020-01-24,01:33,73,59,18,58,75,0,20,-10,F Minor,4,-,3vy3ld7my2hDUTv4u7KIJR,"undefined",4A,US38Y1935209
+96,"Heavy Flow","The Garrys",17,143,"","Get Thee to a Nunnery",2021-09-24,01:25,50,73,36,68,85,0,10,-7,E Major,4,-,5iawR0r69u7VFWjeGgxBGv,"undefined",12B,CANYF2000110
+97,"Tramp Like You","Oracle Sisters",41,140,"","Hydranism",2023-04-07,05:24,60,19,90,59,8,0,0,-14,E Major,4,-,0rNww8SMuGZm8GkDWeHtLi,"undefined",12B,USA2B2204069
+98,"Seni Sen Olduğun İçin Sevdim","Şatellites",28,154,"rock anadolu","Şatellites",2022-04-01,04:08,42,80,18,64,48,0,10,-7,F#/G♭ Major,4,-,4gJZ1IfA7GLsLSqFnx5P0B,"undefined",2B,GBZG92100029
+99,"Felicity","Hologramme",37,160,"","Felicity",2019-08-30,03:51,76,66,24,90,57,20,10,-10,F Major,4,-,2qkGJasD7aT9fdzNDM1Ng0,"undefined",7B,CAJZC1900001
+100,"Sospetto","Trees Speak",7,147,"krautrock, space rock, soul jazz","Mind Maze",2023-03-10,03:08,47,75,3,88,50,0,10,-5,C Minor,4,-,63TBVc8zrXXCFbPmWNOu6x,"undefined",5A,GBBCK2201794

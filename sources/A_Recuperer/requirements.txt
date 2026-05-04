@@ -1,0 +1,7 @@
+pandas
+numpy
+openpyxl
+rapidfuzz
+unidecode
+playwright
+beautifulsoup4

@@ -1,0 +1,101 @@
+#,Song,Artist,Popularity,BPM,Genres,Album,Album Date,Time,Dance,Energy,Acoustic,Instrumental,Happy,Speech,Live,Loud (Db),Key,Time Signature,Added At,Spotify Track Id,Album Label,Camelot,ISRC
+1,"Electric Silence","Glass Museum",24,90,"nu jazz","Electric Silence",2018-03-02,05:47,26,64,10,87,23,0,20,-11,E Minor,4,2025-03-17,6KIX1sesv6tCsdrtXKtd8Q,"undefined",9A,BEC631700066
+2,"Come On Let's Go","Broadcast",0,115,"dream pop, shoegaze","The Noise Made By People",2000-03-20,03:17,58,68,0,7,37,0,0,-9,D Major,4,2025-03-17,374buquHBf8KY9edm9SBtG,"undefined",10B,GBBPW9900176
+3,"In the Sunshine","Jonathan Bree",0,96,"","After the Curtains Close",2020-07-17,03:48,48,47,1,84,8,0,20,-12,B Minor,4,2025-03-17,3gUwxhp6CXSPhUyV0jFvov,"undefined",10A,NZLC02000005
+4,"Summertime","Rosinha De Valencia",35,98,"","Brazilian Beats 2 (Mr. Bongo presents)",2001-02-12,03:01,48,66,84,94,62,0,10,-11,A Minor,4,2025-03-17,7zGnsPlpUwVK053gO1ElXR,"undefined",8A,GBCLQ0700084
+5,"Prélude in E Minor, Op. 28 No. 4","Eugen Cicero",31,92,"jazz","Swinging the Classics On MPS",2014-02-21,07:09,56,29,71,84,12,0,10,-13,A Minor,4,2025-03-17,31jsadEgrSLHJMWP5QLab9,"undefined",8A,DEN120406865
+6,"Es geht immer um`s Vollenden","Der Nino aus Wien",28,166,"","The Ocelot Show",2008-12-21,05:38,52,33,87,0,56,0,10,-9,A#/B♭ Major,3,2025-03-17,0UCF6JzM4dyfIvSaIrn4Qs,"undefined",6B,ATRA70800046
+7,"How Bizarre","OMC",65,125,"","How Bizarre (Deluxe)",1996-00-00,03:45,77,71,25,0,83,0,20,-6,C Major,4,2025-03-17,46q5BtHso0ECuTKeq70ZhW,"undefined",8B,NZPY09500002
+8,"Because","Elliott Smith",38,81,"auteurs-compositeurs-interprètes","Figure 8 (Deluxe Edition)",2000-04-18,02:19,36,15,74,0,14,0,0,-15,D Major,4,2025-03-17,0W78mVK0xVPpOD7oh4medH,"undefined",10B,USDW19921002
+9,"Paris","Else",58,103,"house française","Paris",2016-04-19,03:29,79,58,2,58,54,0,0,-8,G#/A♭ Minor,4,2025-03-17,2H7F7EfsVhy0jNLsVz8MLH,"undefined",1A,FR7JK1600001
+10,"Make Me Down A Pallet On Your Floor","Piers Faccini,Blick Bassy",26,96,"rock roots, gnaoui, ","Mother Time",2017-06-23,04:04,67,22,91,0,66,0,10,-12,C Major,4,2025-03-17,4ybYoM5Q94BQ8sa3JQV5oZ,"undefined",8B,FR9W11503417
+11,"Ersatz","Baden Baden,Eric Javelle,Julien Lardé",9,140,"pop française, ","Les vents contraires (Original Motion Picture Soundtrack)",2020-05-01,01:34,65,69,18,94,84,0,0,-11,C♯/D♭ Major,4,2025-03-17,0eaBykK3tV5ZsBXu58Ofzj,"undefined",3B,FR2X42084952
+12,"Coup de tête","Bon Entendeur,Pierre Bachelet",46,107,"house française, pop française, variété française, chanson","Aller-retour",2019-12-13,03:53,61,66,9,42,12,0,0,-9,F Major,4,2025-03-17,70BytYu52Hnt0w8GfcOR7b,"undefined",7B,FRZ051900171
+13,"Fugue In D Minor","Egg",35,90,"rock progressif, krautrock, art rock","Egg",1970-00-00,02:49,33,47,0,88,38,0,10,-14,D Minor,4,2025-03-17,5Ib4wQ84DGKGyJieNF5FZN,"undefined",7A,DESK91890904
+14,"Sweet Like Brandy","Kwamie Liv",0,85,"","Lovers That Come and Go",2018-11-09,04:14,38,40,30,0,19,0,10,-12,F#/G♭ Minor,4,2025-03-17,13BHFlLGK9RS6ua5dKm2w0,"undefined",11A,GBKPL1807991
+15,"A Csitari Hegyek Alatt","Oi Va Voi",25,137,"trip-hop","Laughter Through Tears",2003-09-29,04:14,59,46,18,0,17,0,10,-12,F Major,4,2025-03-17,2Co2KVYdvgD5T7qcbBZUtc,"undefined",7B,GBDYB0300114
+16,"Golden Throne (Beyond the Wizards Sleeve Reanimation)","Temples,Beyond The Wizards Sleeve",23,118,"rock psychédélique, pop psychédélique, space rock","Sun Restructured",2014-11-10,06:53,64,41,31,69,16,0,0,-10,A Minor,4,2025-03-17,3z3wKESL4QFPqMtcOb479p,"undefined",8A,UK32S1400260
+17,"Dangerous","Warhaus,Sylvie Kreusch",41,138,"","Warhaus",2017-10-13,05:37,82,51,34,81,49,0,10,-10,D Major,4,2025-03-17,5YNdHRnR4jIlfjF3MDh5zR,"undefined",10B,GBENL1702028
+18,"Your Woman 1917","White Town",32,182,"","Your Woman 1917",2017-12-20,04:55,41,22,51,0,46,0,10,-14,G Minor,4,2025-03-17,2RngoxYPxGYfjdumNRrZAa,"undefined",6A,usl4q1744085
+19,"Wings of Life","Gods Of Venus",29,92,"","Wings Of Life",2018-10-03,04:49,47,71,0,77,41,0,20,-8,A#/B♭ Minor,4,2025-03-17,3qrSK3XkSIE2S7ny2wZVpg,"undefined",3A,FR9EJ1800170
+20,"Saddle Up","Bon Entendeur,David Christie",0,114,"house française, pop française, disco","Minuit",2021-06-25,03:34,78,64,3,0,81,0,70,-6,D Major,4,2025-03-17,7guwQXjjjIlTcf5ikr0eyY,"undefined",10B,FRZ052100159
+21,"Save Your Tears","The Weeknd",54,118,"","After Hours",2020-03-20,03:35,68,83,2,0,64,0,50,-5,C Major,4,2025-03-17,5AG3LHmg3FyVbRESspoPAD,"undefined",8B,USUG12000669
+22,"Quiet Fire","Mammal Hands",0,95,"nu jazz, jazz indie, jazz","Floa",2016-05-27,06:44,42,46,28,89,15,0,10,-9,C♯/D♭ Major,3,2025-03-17,5hxs6EoZpZ11IvZsvgWetY,"undefined",3B,GBVTB1614001
+23,"Sound of Violence","Other Lives",31,83,"chamber pop","For Their Love",2020-04-24,03:45,34,55,22,0,33,0,90,-9,A Minor,3,2025-03-17,5KkJqAoC9QYrMvDiRRKaLe,"undefined",8A,USATO1900314
+24,"More Than Abstract Hip-Hop","Degiheugi",0,134,"trip-hop","Dancing Chords and Fireflies",2012-10-29,03:10,75,72,57,85,64,0,10,-8,C Major,4,2025-03-17,4Vm0XsGpf5Oy92HivUvmIs,"undefined",8B,FR6V81340456
+25,"Golden Brown","THE TAKE VIBE E.P.",41,104,"","Golden Brown",2020-09-11,03:11,40,44,20,83,54,0,0,-13,C♯/D♭ Major,3,2025-03-17,24XIbFhfr4mqCtKDHyzIvv,"undefined",3B,UKXN21918768
+26,"Mes amis, mes copains","Bon Entendeur,Annie Philippe",37,115,"house française, pop française","Aller-retour",2019-12-13,03:17,42,65,70,0,40,0,20,-7,A Minor,4,2025-03-17,2wHabLqJdeB18JPOFa23PX,"undefined",8A,FRZ051900179
+27,"Void","Mantua",30,100,"","Mantua",2016-11-18,04:12,77,60,21,2,56,0,10,-6,G Major,4,2025-03-17,6xLp71QUsFL31ZuMNMHjeW,"undefined",9B,DK4YA1609304
+28,"Mourib","Maii and Zeid,Zeid Hamdan,Maii Waleed",24,95,"","Ehdefni",2017-10-27,02:42,79,60,28,0,55,0,0,-7,G Minor,4,2025-03-17,6x2pA26RPqy9QBXSIWWGcB,"undefined",6A,TCADG1776018
+29,"Laissez-moi danser","Pat Kalla,Le Super Mojo",27,91,"","Jongler",2018-11-23,03:21,87,53,62,0,97,10,10,-8,D#/E♭ Major,4,2025-03-17,3EaN5JV1dPEoPq8rqFmMJb,"undefined",5B,FR7Z21800027
+30,"Alba (feat. Sofiane Pamart)","Bon Entendeur,Sofiane Pamart",0,94,"house française, pop française, ","Minuit",2021-06-25,03:47,53,67,55,91,9,0,10,-10,D Minor,4,2025-03-17,1D0fyvHnRTchoKyBO0OjZ4,"undefined",7A,FRZ052100150
+31,"Untitled 1","Ocelote Rojo",44,107,"","Digging the Blogosphere",2012-03-09,02:51,65,40,80,58,20,0,10,-13,C♯/D♭ Minor,4,2025-03-17,0xsWoUGThGgTdfiFdhn4Dt,"undefined",12A,FR4EO1200033
+32,"All of Me Wants All of You - Live","Sufjan Stevens",0,144,"chamber pop, pop baroque","Carrie & Lowell Live",2017-04-28,06:29,47,70,14,3,58,0,70,-7,B Minor,4,2025-03-17,3ZX93k2QdeRCdIDhh2zs9B,"undefined",10A,US64G1713204
+33,"Immensità","Andrea Laszlo De Simone",41,115,"","Immensità",2020-02-21,03:39,62,50,77,94,57,0,0,-10,D#/E♭ Major,3,2025-03-17,4NvoIMq8DkHSHxP5CLAj1Q,"undefined",5B,FRPDG1900510
+34,"Eden","Futuro Pelo",20,120,"","Eden",2018-06-04,03:23,68,80,5,0,83,0,0,-5,F Major,4,2025-03-17,1Y6BVQLmAlfYtWPYUMmxJY,"undefined",7B,FR9Z61800091
+35,"She's Not There","The Zombies",0,132,"pop baroque, rock psychédélique, pop psychédélique","Begin Here",1965-03-01,02:25,52,80,58,0,90,0,0,-5,E Minor,4,2025-03-17,3dzW0SoVNyJTWWJimX8stj,"undefined",9A,GBCBS6432190
+36,"Tu fais partie du passé","Bon Entendeur,Zouzou",34,124,"house française, pop française","Aller-retour",2019-12-13,02:49,70,73,6,1,54,0,20,-7,D Minor,4,2025-03-17,5g8IVPV9HlhiSRcnfr7qSu,"undefined",7A,FRZ051900183
+37,"Kaät","Roseaux,Blick Bassy",3,117,"retro-soul, ","Roseaux II",2019-09-06,04:07,48,22,95,12,57,0,0,-15,B Minor,4,2025-03-17,3poi95CMNu7G9h0q4qOxl3,"undefined",10A,FR6DF1800001
+38,"Le Temps Qui Meurt","Michelle Gurevich",23,93,"slowcore","New Decadence",2016-09-28,04:55,39,12,92,96,45,0,10,-16,B Minor,3,2025-03-17,2DhPryKJr8bHa4LVUQhbcL,"undefined",10A,TCACR1699414
+39,"Szał Niebieskich Ciał - 2011 Remaster","Maanam",33,120,"","Maanam [2011 Remaster]",1981-00-00,07:48,66,26,59,1,23,0,10,-10,A Minor,3,2025-03-17,5WqIlkOh2zDFJKtvFGHE2g,"undefined",8A,PLA551100008
+40,"Oblivion","Rodrigo y Gabriela,Vicente Amigo",4,120,"rock acoustique, flamenco, pop flamenco","Oblivion",2021-04-15,05:13,70,54,90,88,58,0,10,-10,B Minor,4,2025-03-17,7jtcJlZmxEq4FUFvqb0Dzv,"undefined",10A,IEACJ1900166
+41,"The Hollow Sound of the Morning Chimes","TOPS",39,89,"","The Hollow Sound of the Morning Chimes",2015-10-26,06:48,67,25,74,31,48,0,0,-11,B Minor,4,2025-03-17,0f3UkQunbeGd6jGRYFmvwl,"undefined",10A,CA21O1500034
+42,"A Dream of You and Me","Future Islands",55,137,"","Singles",2014-03-24,03:59,69,94,43,5,82,0,10,-4,A#/B♭ Major,4,2025-03-17,44GeTdr7MktZDqNUkLaj5h,"undefined",6B,GBAFL1300215
+43,"S I C K","Mademoiselle K",29,110,"pop française, house française, chanson","Sous les brûlures l'incandescence intacte",2017-09-01,03:59,70,54,3,0,51,0,10,-7,E Major,4,2025-03-17,1zJJqaLqGNqbB0mvSRlyl8,"undefined",12B,FR9W11711391
+44,"Koca Bir Saçmalık","Jakuzi",2,135,"dark wave, synthpop","Fantezi Müzik",2017-03-24,04:12,49,88,3,90,51,0,30,-7,F Major,4,2025-03-17,5KDsV9BS4b68kATRBo5DBO,"undefined",7B,DED621700057
+45,"Song After Midnight (Song For Denise)","Bon Entendeur,Piano Fantasia",0,112,"house française, pop française, disco italienne","Minuit",2021-06-25,03:04,82,69,1,59,80,0,40,-7,C Minor,4,2025-03-17,7uLaxaLQHN7Cq7aIrkvVAp,"undefined",5A,FRZ052100161
+46,"Genetic Bomb","Animali",18,110,"","Mary D. Kay",2020-06-12,06:04,58,83,1,27,69,0,10,-6,A Major,4,2025-03-17,2IQQRB3MSdWM3K8CUBtuCf,"undefined",11B,FR9W11926356
+47,"Whistman's Wood","John Surman",27,88,"free jazz, jazz","Saltash Bells",2012-05-25,06:32,40,18,90,74,10,0,10,-16,A Minor,4,2025-03-17,7hr8vm7sTDEUR1qFqKyq5x,"undefined",8A,DEB330926601
+48,"My Woman","Al Bowlly",24,173,"big band, standards pour adultes","Somewhere over the Rainbow - The Magic of Al Bowlly",2019-07-24,03:17,57,18,99,8,77,10,10,-17,E Minor,4,2025-03-17,4EAQ359ICBiv250ZwXUTwI,"undefined",9A,UKU6H1940414
+49,"Origine","Else",44,99,"house française","Sequence, Pt. I",2019-09-18,03:54,45,87,1,58,8,0,30,-7,E Minor,4,2025-03-17,5fcIg2K2fGHToWOC8pvuX2,"undefined",9A,FRIDO1911071
+50,"Child","B77",0,123,"","Fleur",2019-06-14,03:27,53,79,76,88,20,0,30,-6,D Major,4,2025-03-17,7DLTCiFgApQpvUdAAbNB6G,"undefined",10B,TCADW1850044
+51,"Every Time","Oi Va Voi",0,120,"trip-hop","Travelling The Face Of The Globe",2009-06-08,05:35,51,78,24,14,17,0,10,-10,F Major,4,2025-03-17,4QzgoMTeM3g9PnTDcQ4Uem,"undefined",7B,GBXRC0900004
+52,"The Garden","Papooz",0,146,"","The Garden",2020-07-08,04:08,46,53,19,5,13,0,10,-10,C Major,4,2025-03-17,3Pvio4yVZQHD2MTkoJaQaP,"undefined",8B,FR53O2000370
+53,"Alone Again Or","Calexico",0,88,"country alternative, americana, rock roots","Convict Pool",2004-04-06,03:24,49,81,18,0,31,0,0,-10,D Major,4,2025-03-17,2lqpdOAPuA3H0rSu6NuxVh,"undefined",10B,USA4C0409001
+54,"Let the World Go By","Karl Blau",26,111,"country alternative","Introducing Karl Blau",2016-05-13,03:44,58,44,25,0,39,0,30,-11,B Minor,4,2025-03-17,3YwckMLPqMxE0e2YDbQRsP,"undefined",10A,GBBRP1653404
+55,"Oracle","Chapelier Fou",42,143,"trip-hop","Muance",2017-10-20,03:18,45,58,91,87,76,0,0,-11,F#/G♭ Minor,3,2025-03-17,475SILtK3n8sWqR41M9Wfj,"undefined",11A,FR24Q1636002
+56,"Able Archer","Animali",19,145,"","Mary D. Kay",2020-06-12,05:34,52,85,17,54,41,0,20,-7,F#/G♭ Minor,4,2025-03-17,0WyG5RhBu37trCwWMG90NH,"undefined",11A,FR9W11926355
+57,"Black Out Days - Future Islands Remix","Phantogram,Future Islands",68,170,"","Black Out Days (Future Islands Remix)",2017-09-01,04:08,48,48,0,78,12,0,10,-9,E Minor,4,2025-03-17,3kxkjirben9RVm9NqYa6rm,"undefined",9A,USUM71415944
+58,"New Boo","Kwamie Liv",0,128,"","Lovers That Come and Go",2018-11-09,03:26,71,61,28,0,83,0,10,-9,D#/E♭ Minor,4,2025-03-17,5pGaDqV1iUoCTdPsA3FrSB,"undefined",2A,GBKPL1823229
+59,"The Break","Σtella",0,116,"","The Break",2020-01-24,03:03,69,67,25,73,97,0,10,-8,B Minor,4,2025-03-17,3i3MbescvvY7kxaQokuD1A,"undefined",10A,CA21O1907707
+60,"Chien chinois","MaMaMa",19,144,"pop française","Les plus beaux matins",2020-09-04,03:30,58,66,18,0,31,0,10,-5,F#/G♭ Minor,4,2025-03-17,0RzGP7qF9VWPfr37mDuGLN,"undefined",11A,FRIDO1912152
+61,"Touch of Midas","Dom Salter",2,120,"","Maybe",2020-08-10,03:19,85,38,70,0,65,10,10,-12,A#/B♭ Minor,4,2025-03-17,7cfOQqr10ekRjJiykgDW9H,"undefined",3A,QZK6N2033451
+62,"Astringent Mouse Trap","Fred Pallem,le Sacre du Tympan",18,172,"","L'Odyssée",2018-10-05,06:53,30,70,3,87,48,0,10,-8,E Minor,4,2025-03-17,1IinY85GZg9nQFRoun1a9c,"undefined",9A,FR7KN1800029
+63,"If This Hat Is Missing I Have Gone Hunting","Get Well Soon",0,115,"chamber pop","Rest Now, Weary Head! You Will Get Well Soon",2008-01-18,04:09,55,97,24,76,61,0,20,-5,A Minor,4,2025-03-17,6PSkeBH8JCgIk9KKL4y49i,"undefined",8A,DED620800214
+64,"Der Blaue Fels","Stimming x Lambert",27,105,"néo-classique","Exodus",2018-03-09,02:43,71,45,78,90,87,0,10,-10,D#/E♭ Minor,4,2025-03-17,1HZFNRGXnAzALbT1HaCl4N,"undefined",2A,DEBY41700012
+65,"Paraiso","Gizmo Varillas",49,108,"","El Dorado",2016-11-25,01:43,67,67,86,83,42,0,0,-11,G#/A♭ Minor,4,2025-03-17,5DS8MJPor5YAoo2Y9ElFzY,"undefined",1A,UKEVU1600001
+66,"Moon & Sand","Ibeyi,Benjamin Biolay",29,130,"pop française, chanson, variété française, jazz français, house française","Autour de Chet",2016-04-29,03:18,67,49,75,0,21,0,10,-10,A Minor,4,2025-03-17,7DtTiCwLMeAR1ia8viJPP0,"undefined",8A,FRUM71600180
+67,"Dirge","Death In Vegas",45,100,"big beat, trip-hop","The Contino Sessions",1999-00-00,05:43,49,69,1,58,57,0,0,-8,E Major,4,2025-03-17,015SmK4Fvjv13dVwtGoMC0,"undefined",12B,GBARS9800149
+68,"Liebestraum","Eugen Cicero",18,155,"jazz","Swinging the Classics On MPS",2014-02-21,05:10,42,46,62,81,51,0,10,-11,C Minor,4,2025-03-17,1NCifQJDTMqnQiVrXSApAB,"undefined",5A,DEN120406878
+69,"My World Is Empty Without You","José Feliciano",21,160,"bolero","Souled",1968-10-25,03:16,42,46,77,0,51,0,50,-10,F#/G♭ Minor,4,2025-03-17,4FO2wYk888ICu1LUdYuXuv,"undefined",11A,USRC16808035
+70,"Brazillian - Extended","Gramophonedzie",19,125,"électro swing, swing","Brazillian",2010-03-26,07:41,76,81,0,74,71,0,0,-7,C♯/D♭ Major,4,2025-03-17,5y8ztS9U7nNZmRUwRWFT15,"undefined",3B,GBGYY1000199
+71,"Smoke","Moddi",27,81,"pop norvégienne, indie folk","Floriography",2010-02-08,05:12,39,16,73,2,26,0,10,-13,A Minor,4,2025-03-17,4c7EvOX9f6ZgwVH4cioakC,"undefined",8A,NOIMR1001050
+72,"5 AM","Hamilton Leithauser",24,72,"","Black Hours (Deluxe Edition)",2014-06-02,03:24,15,31,19,0,11,0,10,-8,D Major,3,2025-03-17,13Kzpte3VzxyfNqRkKAKlf,"undefined",10B,GBCEL1400003
+73,"November","Max Richter,Mari Samuelsen,Konzerthausorchester Berlin,Jonathan Stockhammer",53,120,"néo-classique, minimalisme, classique, ambient, orchestre","Voyager - Essential Max Richter",2019-10-04,06:07,44,44,52,18,14,0,10,-11,C Major,4,2025-03-17,2NGhKPZdZk2pPZinWphTzh,"undefined",8B,DEN961900600
+74,"The Beggar & the Thief","Piers Faccini",45,80,"rock roots, gnaoui","My Wilderness",2011-09-26,04:46,67,29,53,7,43,0,10,-11,C Minor,4,2025-03-17,3KtegSCldyVsWDGTeTQvtm,"undefined",5A,FR79W1100030
+75,"Solo Sunny","Regine Dobberschütz",14,127,"","Die 100 besten Ostsongs (Die radio eins Top 100 Hits)",2019-11-15,03:05,47,18,77,0,20,0,10,-10,A#/B♭ Minor,4,2025-03-17,3nWjvMrgVNwSZdgY4HOZI9,"undefined",3A,DEC719400562
+76,"Fine Anyway","Rogér Fakhr",0,62,"","Fine Anyway (Habibi Funk 016)",2021-04-09,02:43,60,39,85,0,48,0,10,-9,E Minor,4,2025-03-17,6IfOFGLpJmYSyrKed5N3gk,"undefined",9A,DESY21401225
+77,"Deadly Valentine","Charlotte Gainsbourg",53,105,"","Rest",2017-11-17,06:04,46,55,3,5,41,0,0,-8,B Major,4,2025-03-17,0pfTlQJBOV4LUmF8qqrVy5,"undefined",1B,FR6P11701900
+78,"True Love","Otzeki",17,99,"","Binary Childhood",2018-04-13,08:31,82,51,38,27,17,0,10,-10,G Major,4,2025-03-17,2719VsyD72TOEuPkduEGKW,"undefined",9B,GBKPL1899911
+79,"Turiya & Ramakrishna","Alice Coltrane",0,111,"free jazz, jazz","Ptah The El Daoud",1996-01-01,08:18,42,30,91,93,12,0,10,-15,F#/G♭ Major,4,2025-03-17,7tQ7e28gdQNhLcIbqc1PXY,"undefined",2B,USMC17049551
+80,"Mayonaka no Door / Stay With Me","Miki Matsubara",75,108,"city pop, j-pop","Miki Matsubara Best Collection",2008-00-00,05:12,66,75,18,0,79,0,0,-7,F Major,4,2025-03-17,2BHj31ufdEqVK5CkYDp9mA,"undefined",7B,JPPC07950030
+81,"Trafalgar Square","Jonathan Wilson",32,115,"","Rare Birds",2018-03-02,06:24,45,58,8,1,20,0,30,-9,A Major,4,2025-03-17,26Rhg73UgqxO98EAPX6Ene,"undefined",11B,GBBRP1873001
+82,"Another Screen","Kormac,Irvine Welsh",23,202,"électro swing, swing, dance alternative","Doorsteps",2014-11-03,03:50,43,50,41,0,38,0,10,-9,A Major,4,2025-03-17,0uztMMTzIx5xHsxWYF9Imw,"undefined",11B,IEHZR1300025
+83,"Colombus","Limousine",39,150,"","L'été suivant...",2019-03-22,03:42,52,45,75,82,26,0,10,-13,B Major,4,2025-03-17,3tjTTans1NtZ0YTLGaLqUN,"undefined",1B,FR3PA1900010
+84,"Little Human","Tom Sanders",0,127,"","Only Magic",2020-12-04,03:33,82,32,91,2,45,0,10,-11,F Major,4,2025-03-17,2aexaEXiN4Bw5spWW4f3OC,"undefined",7B,GBGEY2000111
+85,"Easy Way Out","Other Lives",26,132,"chamber pop","Rituals",2015-05-04,04:03,59,77,1,74,60,0,10,-9,F Major,4,2025-03-17,749PP2bVT2SUpNZVJvI9DE,"undefined",7B,USTBD1500004
+86,"Japura River","Philip Glass,Kristjan Järvi,Charles Coleman,MDR Leipzig Radio Symphony Orchestra,Absolute Ensemble",22,68,"minimalisme, classique, néo-classique, ","Glass: Aguas da Amazonia",2017-03-19,04:05,29,28,97,92,52,0,10,-17,F Minor,4,2025-03-17,19pDFXMewAsp2xMCArTWem,"undefined",4A,US65R1611502
+87,"Stormi","Iosonouncane",43,105,"","DIE",2015-03-30,04:09,53,62,3,0,11,0,30,-8,G Major,4,2025-03-17,6SQItrDKcga0XDL5EsLgRW,"undefined",9B,ITT491500005
+88,"Lè Ma Monte Chwal Mwen","Melissa Laveaux",0,179,"","Radyo Siwèl",2018-02-02,03:33,53,63,20,1,44,0,10,-8,F Major,4,2025-03-17,6mJILckzKnlzIC2WUNwn4d,"undefined",7B,FR2W61700070
+89,"Filandia","Swietliki",36,112,"spoken word","Las Putas Melancolicas Y Exclusivas",2005-01-01,04:01,56,52,13,19,43,0,10,-9,B Minor,4,2025-03-17,1FH1SrrTRWypTOUBGsVB88,"undefined",10A,PLUM70500100
+90,"Sakla Beni","Kutiman,Melike Şahin",0,154,"pop turque, arabesque","Sakla Beni",2019-03-29,04:40,46,51,0,3,77,0,10,-11,F Minor,3,2025-03-17,29iikcw9YrjhYEmfLgBTHF,"undefined",4A,IL5001900201
+91,"Gold to Straw","Oum Shatt",0,176,"","Gold to Straw",2016-05-13,03:11,73,73,68,21,54,0,30,-7,G Major,4,2025-03-17,2Bo0wCPBd1rApHmb2NNwfe,"undefined",9B,DEPC51600426
+92,"Sea Of Wine","Teleman",0,106,"","Family Of Aliens",2018-09-07,04:50,66,65,57,79,17,0,0,-11,C♯/D♭ Minor,4,2025-03-17,4HzVtretNOVOtPvZ73GIIC,"undefined",12A,GBGEY1800023
+93,"Swing Lynn","Harmless",5,165,"","I'm Sure",2012-08-14,05:21,46,95,5,75,48,0,10,-2,D Major,4,2025-03-17,6hIOunhsLUT66KQgZV5dMD,"undefined",10B,TCACS1610798
+94,"Gold","Hugo Kant,Astrid Engberg",29,144,"trip-hop, nu jazz, downtempo, ","The Point of No Return",2014-00-00,04:34,70,66,59,53,39,0,10,-6,F#/G♭ Minor,4,2025-03-17,6aFvJKBLXTWu3iGuIOhdwg,"undefined",11A,FR9W11401493
+95,"A Man I Know","Charles Pasi",49,113,"","Sometimes Awake",2014-10-27,03:53,74,39,50,8,8,0,10,-11,E Minor,3,2025-03-17,4Abirka1cnsMtWOMhpwKx5,"undefined",9A,FR10S1409293
+96,"Far Gone (Don't Leave)","Pictish Trail",0,72,"","Future Echoes",2017-10-13,03:40,45,57,1,0,13,0,0,-5,F#/G♭ Minor,4,2025-03-17,33cHmqqAAsfvhSAZQMchgx,"undefined",11A,GBZDN1600001
+97,"Smell The Roses","Zenzile",0,108,"dub","Totem",2002-10-22,03:55,81,53,11,0,45,0,10,-9,G#/A♭ Minor,4,2025-03-17,2ifT6tOCMStI53NBgIXzRk,"undefined",1A,FRP620200020
+98,"Teneriffa","The Düsseldorf Düsterboys",31,138,"","Nenn mich Musik",2019-10-25,03:41,57,34,81,38,37,0,0,-11,A#/B♭ Major,4,2025-03-17,2ieDZmJeRkxKhuX0moeGq4,"undefined",6B,DEEH61900040
+99,"More Time","Madeleine Peyroux",30,118,"jazz français, jazz vocal, jazz","Secular Hymns",2016-09-16,03:22,65,16,92,0,40,30,10,-18,B Minor,4,2025-03-17,2TaG40zx86SHIPLxvbXbdM,"undefined",10A,FRUM71601150
+100,"Κοκτέιλ","Nalyssa Green",38,123,"entehno","Κοκτέιλ",2016-05-31,03:20,71,67,17,70,59,0,10,-6,E Minor,4,2025-03-17,57rmsIZTYZ6XU2KNvFpXio,"undefined",9A,UST8K1650439
