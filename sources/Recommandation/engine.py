@@ -74,9 +74,13 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import ast
 import json
+import logging
 import sqlite3
+import time
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -486,6 +490,19 @@ def recommend(
         Liste de `Recommendation` triée par MMR si diversification, sinon par score.
         Tronquée à n_results.
     """
+    t0 = time.time()
+    seeds_with_data = sum(
+        1 for s in seeds
+        if s in lastfm_similar or s in spotify_similar
+    )
+    logger.info(
+        "recommend(): %d seeds reçus (%d avec données de similarité), "
+        "α=%.2f γ=%.2f λ=%.2f ω=%.2f, n=%d, genre=%s/%s",
+        len(seeds), seeds_with_data,
+        lastfm_weight, history_boost, diversity_weight, popularity_penalty,
+        n_results, genre_filter or [], genre_filter_mode,
+    )
+
     # 1. Agrégation par candidat
     candidates: dict[str, dict] = {}
 
@@ -507,12 +524,18 @@ def recommend(
         for name in seen_in_seed:
             candidates[name]['citing_seeds'].add(seed)
 
+    n_before_exclusion = len(candidates)
+
     # 2. Filtrage exclusion (biblio + playlists)
     excluded_lower = {normalize_artist(x) for x in excluded}
     candidates = {
         a: v for a, v in candidates.items()
         if normalize_artist(a) not in excluded_lower
     }
+    logger.info(
+        "Candidats : %d avant exclusion → %d après (excluded=%d)",
+        n_before_exclusion, len(candidates), len(excluded),
+    )
 
     # 3. Score, boost, filtre genre
     # Normalisation : on divise par Σ poids_seed pour obtenir un score moyen par seed,
@@ -565,9 +588,17 @@ def recommend(
 
     recs.sort(key=lambda r: r.score, reverse=True)
 
-    if diversity_weight > 0:
-        # On garde un pool plus large pour donner de la matière à MMR
-        pool_size = min(len(recs), max(n_results * 5, 30))
-        return diversify_mmr(recs[:pool_size], diversity_weight, n_results)
+    if genre_filter:
+        logger.info("Après filtre genre (%s) : %d candidats", genre_filter_mode, len(recs))
 
+    if diversity_weight > 0:
+        pool_size = min(len(recs), max(n_results * 5, 30))
+        out = diversify_mmr(recs[:pool_size], diversity_weight, n_results)
+        logger.info(
+            "MMR appliqué (pool=%d → top %d) en %.2fs",
+            pool_size, len(out), time.time() - t0,
+        )
+        return out
+
+    logger.info("Top %d retourné en %.2fs", min(n_results, len(recs)), time.time() - t0)
     return recs[:n_results]

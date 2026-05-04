@@ -359,6 +359,23 @@ L'interface s'ouvre sur [http://localhost:8501](http://localhost:8501).
 
 ---
 
+## Logging
+
+Le moteur log automatiquement (niveau INFO) à chaque appel à `recommend()` :
+
+```
+recommend(): 2 seeds reçus (2 avec données de similarité), α=0.50 γ=0.30 λ=0.70 ω=0.50, n=5, genre=['techno']/OR
+Candidats : 106 avant exclusion → 106 après (excluded=1)
+Après filtre genre (OR) : 8 candidats
+MMR appliqué (pool=8 → top 5) en 0.00s
+```
+
+Visible dans le terminal qui a lancé `streamlit run app.py`. Utile pour
+comprendre pourquoi une reco a 0 résultats (ex : on voit que le filtre genre
+a tout coupé) ou pour valider qu'un paramètre est bien actif.
+
+---
+
 ## Limites connues
 
 - **Couverture des seeds** : un seed sans données de similarité dans aucune

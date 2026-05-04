@@ -5,8 +5,17 @@ Lancement :
     cd sources/Recommandation
     uv run streamlit run app.py
 """
+import logging
+
 import pandas as pd
 import streamlit as st
+
+# Logging visible dans la console Streamlit (utile pour comprendre les recos)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%H:%M:%S",
+)
 
 from engine import history_weights, recommend
 from data_provider import (
