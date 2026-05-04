@@ -27,7 +27,8 @@ sources/Recommandation/
 ├── data_provider.py    # Chargement des données avec cache @st.cache_data
 ├── feedback.py         # Persistance des 👍/👎 utilisateur
 ├── session_log.py      # Persistance des sessions de recos (data/Recommandation/sessions.csv)
-├── sync_seeds.py       # Script de synchro biblio+playlists → artistes_liste.csv
+├── sync_seeds.py       # Synchro biblio+playlists → artistes_liste.csv
+├── expand_base.py      # Crawl en largeur : top N artistes les plus cités → artistes_liste.csv
 ├── tests/
 │   └── test_engine.py  # Tests unitaires du moteur
 ├── requirements.txt
@@ -356,6 +357,70 @@ uv run streamlit run app.py
 ```
 
 L'interface s'ouvre sur [http://localhost:8501](http://localhost:8501).
+
+---
+
+## Élargissement automatique de la base (`expand_base.py`)
+
+**Problème.** La base de similarités couvre les artistes que tu connais déjà
+(biblio + playlists scrapés via `sync_seeds.py`). Mais beaucoup d'artistes
+apparaissent fréquemment **comme similaires** sans être eux-mêmes scrapés
+comme **sources** — donc on ne sait rien de _leurs_ similaires à eux. Ils sont
+des feuilles du graphe alors qu'ils mériteraient d'être des nœuds.
+
+**Solution : crawl en largeur.** Le script `expand_base.py` détecte les
+artistes les plus cités comme similaires mais pas encore scrapés comme source,
+et les ajoute à `artistes_liste.csv` pour qu'ils soient traités au prochain
+run des scrapers Last.fm/Spotify.
+
+**Algorithme**
+
+```
+1. popularity(c) = nb de fois où c est cité comme similaire (Last.fm ∪ Spotify)
+2. Candidats éligibles =
+   - popularity(c) ≥ min_citations
+   - c ∉ sources déjà scrapées (Last.fm + Spotify)
+   - c ∉ artistes_liste.csv (déjà en attente)
+   - c ∉ biblio ∪ playlists ∪ dislikes
+3. Trier par popularity DESC, garder le top N
+4. Ajouter à artistes_liste.csv
+```
+
+**Lancement**
+
+```bash
+cd sources/Recommandation
+
+uv run python expand_base.py --dry-run     # Preview du top 200
+uv run python expand_base.py               # Applique (top 200, seuil 10)
+uv run python expand_base.py --top-n 500   # Plus large
+uv run python expand_base.py --min-citations 20  # Seuil plus strict (moins de bruit)
+```
+
+**Cycle de vie typique**
+
+1. Tu utilises l'app, identifies des artistes qui te plaisent → 👍 ou bouton ➕
+2. De temps en temps : `uv run python expand_base.py` (un scan large)
+3. Relancer les scrapers (`Artistes_Similaires_LastFM/main.py` et
+   `Artistes_Similaires_Spotify/main.py`) — ils traitent uniquement les
+   nouveaux artistes (skip automatique des déjà scrapés)
+4. La base s'enrichit et l'app a accès à plus d'artistes en seed possible
+   et plus de précision dans les similarités
+
+**Choix des défauts**
+
+- `top-n = 200` : assez grand pour faire grossir la base notablement
+  (~3-4% par cycle si tu en as 5000+) tout en restant traitable par les
+  scrapers en quelques heures.
+- `min-citations = 10` : élimine le bruit (artistes cités 1–2 fois sont
+  souvent des erreurs de match ou des homonymes). À baisser à 5 si tu veux
+  vraiment ratisser large, à monter à 30+ pour ne garder que les hubs majeurs.
+
+**Risque connu.** La popularité est globale, pas relative à toi. Tu peux
+finir par scraper des artistes très éloignés de tes goûts (variété française
+mainstream si tu as quelques chansons de Cabrel dans une playlist). Pas
+grave : ça enrichit le graphe sans polluer tes recos (les filtres exclusion
++ pénalité popularité s'en chargent).
 
 ---
 
