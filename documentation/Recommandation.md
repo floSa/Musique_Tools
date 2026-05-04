@@ -211,7 +211,21 @@ uv run python sync_seeds.py              # Applique
 Sans cette synchro, les seeds ajoutés à ta biblio ou tes playlists depuis le
 dernier scraping seraient silencieusement ignorés (pas de similaires en base).
 
-### 11. Persistance des sessions
+### 11. Filtre par genre — modes OR / AND
+
+Le filtre genre supporte deux modes :
+
+- **OR** (défaut) : un candidat passe s'il a **au moins un** des tags choisis.
+  Permissif — utile pour explorer un univers musical large.
+- **AND** : un candidat passe s'il a **tous** les tags choisis.
+  Restrictif — utile pour des combinaisons précises (ex : "rock français",
+  "techno minimal").
+
+> ⚠️ Tous les artistes de la base Last.fm n'ont pas leurs tags renseignés
+> tant que `update_tags.py` n'a pas tourné — sans tags, le filtre les exclut
+> (en OR comme en AND).
+
+### 12. Persistance des sessions
 
 Chaque calcul de recommandations est sauvegardé dans
 `data/Recommandation/sessions.csv` avec :
@@ -238,7 +252,52 @@ Pour chaque recommandation, en plus du tableau et des détails :
 L'embed permet d'écouter directement quelques top tracks sans quitter l'app
 — c'est ce qui change le plus l'usage en pratique.
 
-### 13. Filtre par genre
+### 13. Pénalité de popularité (TF-IDF côté candidat)
+
+**Problème :** sans correction, les artistes "génériques" (Daft Punk, Radiohead,
+Alain Souchon) qui apparaissent comme similaires de presque tout le monde
+trustent les premières positions, parce qu'ils accumulent des contributions de
+nombreux seeds. Pourtant ce sont rarement de bonnes recommandations
+(soit on les connaît déjà, soit ils sont si "passe-partout" qu'ils n'apportent
+rien de pointu).
+
+**Solution :** une pénalité multiplicative basée sur la popularité du candidat
+dans la base de similaires (analogue à l'IDF en recherche d'information) :
+
+```
+popularité(c) = nombre d'artistes ayant `c` dans leurs similaires (Last.fm + Spotify)
+factor(c) = 1 / (1 + ω × log(1 + popularité(c)))
+score(c) *= factor(c)
+```
+
+- `ω = 0` : pas de pénalité (défaut)
+- `ω = 0.3` : pénalité douce (pop=100 → factor 0.42)
+- `ω = 0.7` : pénalité moyenne (pop=100 → factor 0.24)
+- `ω = 1.5` : forte pénalité (pop=100 → factor 0.13)
+
+**Pourquoi log et pas linéaire ?** Pour que la pénalité augmente vite sur les
+premières citations (1 → 50 citations) puis s'aplatisse. Sinon les ultra-pop
+(pop > 100) seraient écrasés à zéro et n'apparaîtraient jamais, alors qu'on
+veut juste qu'ils ne dominent pas.
+
+**Concrètement** : sur seeds Worakls + Air, sans pénalité on obtient
+NTO/Joachim Pastor/Teho... (tous pop=30-50). Avec ω=0.7, des artistes plus
+pointus comme Ron Flatter (pop=13) ou Nuspirit Helsinki (pop=25) entrent dans
+le top 10.
+
+### 14. Bouton "Ajouter à artistes_liste.csv"
+
+Sur chaque carte de recommandation, un bouton **➕ Ajouter à artistes_liste.csv**
+ajoute l'artiste recommandé à la liste des seeds. Au prochain run des scrapers
+`Artistes_Similaires_LastFM` et `Artistes_Similaires_Spotify`, l'artiste sera
+scrapé et **pourra être utilisé comme seed lui-même** dans les futures recos.
+
+C'est la "boucle de découverte" : tu trouves un artiste intéressant, un clic, et
+au prochain scraping il enrichit ton univers de seeds. Sans ce bouton, tu
+devrais éditer manuellement le CSV ou le synchroniser depuis la biblio (et il
+n'est pas dans la biblio puisque tu viens juste de le découvrir).
+
+### 15. Filtre par genre
 
 Les genres viennent des **tags Last.fm** (`artist.gettoptags`, top 5). Si tu
 sélectionnes des genres, un candidat passe s'il a **au moins un** des tags
@@ -263,8 +322,11 @@ bruités).
 | Last.fm vs Spotify | 0–1 | 0.5 | α — 0 = Spotify seul, 1 = Last.fm seul |
 | Boost historique | 0–1 | 0.3 | γ — 0 = pas de boost, 1 = boost fort |
 | Diversité (MMR) | 0–1 | 0.0 | 0 = score pur, 1 = anti-redondance maximale |
-| Filtre genres | multi | [] | Filtre OR sur les tags Last.fm |
+| Pénalité popularité | 0–2 | 0.0 | ω — dampe les artistes génériques (TF-IDF) |
+| Filtre genres | multi | [] | Tags Last.fm |
+| Mode filtre | OR / AND | OR | OR = un suffit, AND = tous requis |
 | Bouton "Synchroniser" | — | — | Met à jour artistes_liste.csv avec biblio+playlists |
+| Bouton ➕ par reco | — | — | Ajoute un artiste recommandé à artistes_liste.csv |
 
 ---
 

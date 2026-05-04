@@ -98,6 +98,24 @@ def sync(dry_run: bool = False) -> int:
     return len(missing)
 
 
+def add_artist(artist: str) -> bool:
+    """Ajoute un artiste à `artistes_liste.csv` s'il n'y est pas déjà.
+
+    Retourne True si ajouté, False s'il y était déjà ou si le nom est vide.
+    """
+    artist = (artist or "").strip()
+    if not artist:
+        return False
+    existing = load_existing_seeds()
+    if artist in existing:
+        return False
+    merged = sorted(existing | {artist}, key=str.lower)
+    df_out = pd.DataFrame({"Artist": merged})
+    ARTISTES_LISTE_CSV.parent.mkdir(parents=True, exist_ok=True)
+    df_out.to_csv(ARTISTES_LISTE_CSV, index=False)
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true",

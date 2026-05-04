@@ -87,6 +87,50 @@ SPOTIFY_MAX_RANK = 40       # rang max possible chez Spotify "Fans Also Like"
 HISTORY_BOOST_CAP_MIN = 60  # plafond du boost historique en minutes
 
 
+def compute_artist_popularity(
+    lastfm_similar: dict[str, list[dict]],
+    spotify_similar: dict[str, list[dict]],
+) -> dict[str, int]:
+    """Pour chaque artiste, combien de fois il apparaît comme similaire d'un autre.
+
+    Cette popularité est utilisée pour dampener les candidats trop "génériques"
+    (ceux qui ressortent comme similaire de presque tout le monde — Daft Punk,
+    Radiohead, etc.) et laisser plus de place aux artistes plus pointus.
+
+    Sources combinées Last.fm + Spotify : un artiste cité 50 fois en Last.fm
+    et 30 fois en Spotify a une popularité de 80.
+    """
+    pop: dict[str, int] = {}
+    for similars in lastfm_similar.values():
+        for s in similars:
+            name = s.get("name")
+            if name:
+                pop[name] = pop.get(name, 0) + 1
+    for similars in spotify_similar.values():
+        for s in similars:
+            name = s.get("name")
+            if name:
+                pop[name] = pop.get(name, 0) + 1
+    return pop
+
+
+def popularity_penalty_factor(popularity: int, omega: float) -> float:
+    """Facteur ∈ (0, 1] qui dampe les candidats populaires.
+
+        factor = 1 / (1 + ω × log(1 + popularity))
+
+    - ω = 0 → factor = 1 (pas de pénalité)
+    - ω élevé + popularity élevée → factor → 0 (forte pénalité)
+
+    Utilise log pour que la pénalité augmente vite au début (1 → 50 citations)
+    puis s'aplatisse (les ultra-populaires ne sont pas écrasés à zéro).
+    """
+    if omega <= 0:
+        return 1.0
+    import math
+    return 1.0 / (1.0 + omega * math.log(1 + popularity))
+
+
 # ---------------------------------------------------------------------------
 # Modèles
 # ---------------------------------------------------------------------------
@@ -412,6 +456,9 @@ def recommend(
     genre_filter: list[str],
     n_results: int,
     diversity_weight: float = 0.0,
+    popularity_penalty: float = 0.0,
+    artist_popularity: dict[str, int] | None = None,
+    genre_filter_mode: str = "OR",
 ) -> list[Recommendation]:
     """Calcule le top N des recommandations.
 
@@ -428,6 +475,12 @@ def recommend(
         n_results : nombre de recommandations à retourner
         diversity_weight : ∈ [0,1] — force de la diversification (MMR sur tags Last.fm).
             0 = score pur (défaut), 1 = anti-redondance maximale.
+        popularity_penalty : ω ≥ 0 — pénalité pour les candidats trop populaires
+            (souvent cités comme similaires). 0 = pas de pénalité.
+            Typique : 0.3–0.7 pour favoriser les niches sans écraser les hits.
+        artist_popularity : pré-calcul de `compute_artist_popularity()`. Requis si
+            `popularity_penalty > 0`.
+        genre_filter_mode : "OR" (défaut, un tag suffit) ou "AND" (tous requis).
 
     Returns:
         Liste de `Recommendation` triée par MMR si diversification, sinon par score.
@@ -467,12 +520,18 @@ def recommend(
     seeds_weight_sum = sum(seeds.values()) or 1.0
 
     genre_filter_lower = [g.lower() for g in genre_filter]
+    pop_map = artist_popularity or {}
     recs = []
     for artist, agg in candidates.items():
         base_score = (
             lastfm_weight * agg['lastfm_total']
             + (1 - lastfm_weight) * agg['spotify_total']
         ) / seeds_weight_sum
+
+        # Pénalité de popularité (#4) : dampe les artistes "génériques"
+        if popularity_penalty > 0:
+            pop = pop_map.get(artist, 0)
+            base_score *= popularity_penalty_factor(pop, popularity_penalty)
 
         hist_min = history_minutes_map.get(artist, 0.0)
         if history_boost > 0 and hist_min > 0:
@@ -485,8 +544,12 @@ def recommend(
 
         if genre_filter_lower:
             tags_lower = [t.lower() for t in tags]
-            if not any(g in tags_lower for g in genre_filter_lower):
-                continue
+            if genre_filter_mode == "AND":
+                if not all(g in tags_lower for g in genre_filter_lower):
+                    continue
+            else:
+                if not any(g in tags_lower for g in genre_filter_lower):
+                    continue
 
         recs.append(Recommendation(
             artist=artist,

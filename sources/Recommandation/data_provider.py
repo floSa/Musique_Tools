@@ -11,6 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from engine import (
+    compute_artist_popularity,
     history_minutes,
     load_history,
     load_lastfm_similar,
@@ -51,6 +52,15 @@ def get_lastfm_tags() -> dict[str, list[str]]:
 def get_spotify_similar() -> dict[str, list[dict]]:
     return load_spotify_similar(
         DATA / "Artistes_Similaires_Spotify" / "output_related.csv"
+    )
+
+
+@st.cache_data
+def get_artist_popularity() -> dict[str, int]:
+    """Popularité (nb de fois où l'artiste est cité comme similaire) — cache."""
+    return compute_artist_popularity(
+        get_lastfm_similar(),
+        get_spotify_similar(),
     )
 
 

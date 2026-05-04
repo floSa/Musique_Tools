@@ -11,6 +11,7 @@ import streamlit as st
 from engine import history_weights, recommend
 from data_provider import (
     get_all_genres,
+    get_artist_popularity,
     get_excluded,
     get_history,
     get_history_minutes,
@@ -55,6 +56,7 @@ with st.spinner("Chargement des données..."):
     lastfm_tags = get_lastfm_tags()
     spotify_sim = get_spotify_similar()
     spotify_id_index = get_spotify_id_index()
+    artist_popularity = get_artist_popularity()
     excluded_static = get_excluded()
     seeds_pool = get_seeds_pool()
     all_genres = get_all_genres()
@@ -137,11 +139,30 @@ with st.sidebar:
     )
 
     st.divider()
+    st.subheader("⭐ Pénalité popularité")
+    popularity_penalty = st.slider(
+        "Dampener les artistes 'génériques'",
+        0.0, 2.0, 0.0,
+        step=0.1,
+        help="0 = pas de pénalité. Plus la valeur est haute, plus les artistes "
+             "qui apparaissent comme similaires de TOUT LE MONDE (Daft Punk, "
+             "Radiohead, etc.) sont rétrogradés au profit d'artistes plus "
+             "pointus. Typique : 0.3–0.7."
+    )
+
+    st.divider()
     st.subheader("🏷️ Filtre genres")
     selected_genres = st.multiselect(
         "Restreindre aux genres",
         all_genres,
-        help="Vide = pas de filtre. Sinon, OR sur les tags Last.fm."
+        help="Vide = pas de filtre. Sinon, applique le mode choisi sur les tags Last.fm."
+    )
+    genre_filter_mode = st.radio(
+        "Mode du filtre",
+        ["OR", "AND"],
+        index=0,
+        horizontal=True,
+        help="OR : un tag suffit. AND : tous les tags choisis doivent être présents.",
     )
 
     st.divider()
@@ -224,6 +245,9 @@ if go:
             genre_filter=selected_genres,
             n_results=n_results,
             diversity_weight=diversity_weight,
+            popularity_penalty=popularity_penalty,
+            artist_popularity=artist_popularity,
+            genre_filter_mode=genre_filter_mode,
         )
     st.session_state.recs = recs
     st.session_state.last_run_seeds = dict(seeds)
@@ -234,8 +258,10 @@ if go:
             "beta_recent": recent_weight if use_history_seeds else None,
             "gamma_boost": history_boost,
             "lambda_diversity": diversity_weight,
+            "omega_popularity": popularity_penalty,
             "recent_months": recent_months if use_history_seeds else None,
             "genre_filter": "|".join(selected_genres) if selected_genres else "",
+            "genre_mode": genre_filter_mode,
         }
         session_log.save_session(recs, seeds, params)
 
@@ -316,6 +342,20 @@ if recs is not None:
                         f"[📻 Last.fm](https://www.last.fm/music/{artist_q})  •  "
                         f"[🔍 YouTube](https://www.youtube.com/results?search_query={artist_q})"
                     )
+
+                    st.markdown("**Action**")
+                    if st.button(
+                        "➕ Ajouter à artistes_liste.csv",
+                        key=f"add_{i}_{r.artist}",
+                        help="Ajoute cet artiste à la liste des seeds. Il sera "
+                             "scrapé par Last.fm/Spotify au prochain run et "
+                             "pourra alors être utilisé comme seed lui-même."
+                    ):
+                        added = sync_seeds.add_artist(r.artist)
+                        if added:
+                            st.success(f"✓ {r.artist} ajouté")
+                        else:
+                            st.info(f"{r.artist} était déjà dans la liste")
 
                 # Player Spotify embed si on a l'ID de l'artiste
                 spotify_id = spotify_id_index.get(r.artist)

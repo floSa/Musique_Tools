@@ -18,9 +18,11 @@ from engine import (
     Recommendation,
     SPOTIFY_MAX_RANK,
     _jaccard,
+    compute_artist_popularity,
     diversify_mmr,
     history_weights,
     normalize_artist,
+    popularity_penalty_factor,
     recommend,
     spotify_rank_to_score,
 )
@@ -279,6 +281,86 @@ def test_recommend_score_normalized_by_seed_weight():
     # Avec normalisation, le score moyen reste à ~0.5 dans les deux cas
     assert recs_one[0].score == pytest.approx(0.5)
     assert recs_two[0].score == pytest.approx(0.5)
+
+
+def test_compute_artist_popularity():
+    lastfm = {
+        "S1": [{"name": "A", "match": 1.0, "rank": 1}, {"name": "B", "match": 0.5, "rank": 2}],
+        "S2": [{"name": "A", "match": 1.0, "rank": 1}],
+    }
+    spotify = {
+        "S3": [{"name": "A", "rank": 1}, {"name": "C", "rank": 2}],
+    }
+    pop = compute_artist_popularity(lastfm, spotify)
+    assert pop == {"A": 3, "B": 1, "C": 1}
+
+
+def test_popularity_penalty_factor_zero_omega():
+    """Avec ω = 0, pas de pénalité quel que soit la popularité."""
+    assert popularity_penalty_factor(0, 0) == 1.0
+    assert popularity_penalty_factor(1000, 0) == 1.0
+
+
+def test_popularity_penalty_factor_decreases():
+    """Le facteur doit décroître quand la popularité augmente (ω > 0)."""
+    f1 = popularity_penalty_factor(1, 0.7)
+    f10 = popularity_penalty_factor(10, 0.7)
+    f100 = popularity_penalty_factor(100, 0.7)
+    assert 1.0 > f1 > f10 > f100 > 0
+
+
+def test_recommend_popularity_penalty_reorders():
+    """Avec une forte pénalité, un candidat populaire avec match haut peut
+    perdre face à un candidat niche avec match plus bas."""
+    lastfm_sim = {
+        "S": [
+            {"name": "Popular", "match": 0.9, "rank": 1},
+            {"name": "Niche", "match": 0.6, "rank": 2},
+        ],
+    }
+    pop = {"Popular": 200, "Niche": 5}
+    recs = recommend(
+        seeds={"S": 1.0},
+        lastfm_similar=lastfm_sim,
+        spotify_similar={},
+        lastfm_tags={"Popular": [], "Niche": []},
+        excluded=set(),
+        history_minutes_map={},
+        lastfm_weight=1.0,
+        history_boost=0.0,
+        genre_filter=[],
+        n_results=10,
+        popularity_penalty=2.0,  # forte pénalité
+        artist_popularity=pop,
+    )
+    # Niche doit passer devant Popular grâce à la pénalité
+    assert recs[0].artist == "Niche"
+    assert recs[1].artist == "Popular"
+
+
+def test_recommend_genre_filter_and_mode():
+    lastfm_sim = {
+        "S": [
+            {"name": "Both", "match": 0.9, "rank": 1},
+            {"name": "OnlyRock", "match": 0.8, "rank": 2},
+        ],
+    }
+    tags = {"Both": ["rock", "indie"], "OnlyRock": ["rock"]}
+    recs_or = recommend(
+        seeds={"S": 1.0}, lastfm_similar=lastfm_sim, spotify_similar={},
+        lastfm_tags=tags, excluded=set(), history_minutes_map={},
+        lastfm_weight=1.0, history_boost=0.0,
+        genre_filter=["rock", "indie"], n_results=10, genre_filter_mode="OR",
+    )
+    assert {r.artist for r in recs_or} == {"Both", "OnlyRock"}
+
+    recs_and = recommend(
+        seeds={"S": 1.0}, lastfm_similar=lastfm_sim, spotify_similar={},
+        lastfm_tags=tags, excluded=set(), history_minutes_map={},
+        lastfm_weight=1.0, history_boost=0.0,
+        genre_filter=["rock", "indie"], n_results=10, genre_filter_mode="AND",
+    )
+    assert {r.artist for r in recs_and} == {"Both"}
 
 
 def test_recommend_empty_seeds():
