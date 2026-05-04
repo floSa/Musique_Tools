@@ -1,6 +1,6 @@
 # Musique_Tools
 
-Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe quatre services autour de Spotify, de la bibliothèque physique personnelle et des sources d'acquisition.
+Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe cinq services autour de Spotify, de la bibliothèque physique personnelle et des sources d'acquisition.
 
 ---
 
@@ -34,8 +34,9 @@ Musique_Tools/
 │   ├── Analyse/                         # Notebooks d'analyse Spotify
 │   ├── Artistes_Similaires_LastFM/      # Artistes similaires via API Last.fm
 │   ├── Artistes_Similaires_Spotify/     # Artistes similaires via scraping Spotify
-│   └── A_Recuperer/                     # Pipeline de recherche d'albums
-│       └── utils/
+│   ├── A_Recuperer/                     # Pipeline de recherche d'albums
+│   │   └── utils/
+│   └── Recommandation/                  # Interface Streamlit de découverte
 │
 ├── .env.example
 └── pyproject.toml
@@ -51,6 +52,7 @@ Musique_Tools/
 | **Artistes_Similaires_LastFM** | `sources/Artistes_Similaires_LastFM/` | Artistes similaires + genres via API Last.fm (score 0–1) |
 | **Artistes_Similaires_Spotify** | `sources/Artistes_Similaires_Spotify/` | Artistes similaires "Fans Also Like" via scraping Spotify (rang) |
 | **A_Recuperer** | `sources/A_Recuperer/` | Identifie les albums à récupérer et les recherche sur Lyon + Qobuz |
+| **Recommandation** | `sources/Recommandation/` | Interface Streamlit de découverte d'artistes (Last.fm + Spotify) |
 
 ---
 
@@ -92,6 +94,11 @@ cd sources/A_Recuperer
 uv venv .venv --python 3.12
 uv pip install -r requirements.txt
 uv run playwright install chromium
+
+# Recommandation
+cd sources/Recommandation
+uv venv .venv --python 3.12
+uv pip install -r requirements.txt
 ```
 
 ---
@@ -164,6 +171,19 @@ uv run python main.py --match            # Matching playlists vs bibliothèque �
 uv run python main.py --search           # Scraper Lyon + Qobuz → resultats_cotes.csv
 uv run python main.py --consolidate      # Fusionne tout → data/Resultats/resultats_final.csv
 ```
+
+---
+
+### Service : Recommandation
+
+Interface Streamlit de découverte d'artistes : exclut ce que tu possèdes déjà (biblio + playlists), agrège les similaires Last.fm + Spotify, pondère par l'historique d'écoute. Voir [documentation/Recommandation.md](documentation/Recommandation.md) pour le détail des choix d'algorithme.
+
+```bash
+cd sources/Recommandation
+uv run streamlit run app.py
+```
+
+L'interface s'ouvre sur [http://localhost:8501](http://localhost:8501).
 
 ---
 

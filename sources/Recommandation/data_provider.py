@@ -1,0 +1,127 @@
+"""
+Chargement des données avec cache Streamlit.
+
+Toutes les fonctions sont décorées `@st.cache_data` : Streamlit les exécute une
+seule fois par session et garde le résultat en mémoire. Les caches sont invalidés
+automatiquement si le code des fonctions change.
+"""
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+
+from engine import (
+    history_minutes,
+    load_history,
+    load_lastfm_similar,
+    load_lastfm_tags,
+    load_spotify_id_index,
+    load_spotify_similar,
+)
+
+ROOT = Path(__file__).parent.parent.parent
+DATA = ROOT / "data"
+
+
+@st.cache_data
+def get_history() -> pd.DataFrame:
+    return load_history(DATA / "Historique_Spotify")
+
+
+@st.cache_data
+def get_history_minutes() -> dict[str, float]:
+    return history_minutes(get_history())
+
+
+@st.cache_data
+def get_lastfm_similar() -> dict[str, list[dict]]:
+    return load_lastfm_similar(
+        DATA / "Artistes_Similaires_LastFM" / "similar_artists.db"
+    )
+
+
+@st.cache_data
+def get_lastfm_tags() -> dict[str, list[str]]:
+    return load_lastfm_tags(
+        DATA / "Artistes_Similaires_LastFM" / "similar_artists.db"
+    )
+
+
+@st.cache_data
+def get_spotify_similar() -> dict[str, list[dict]]:
+    return load_spotify_similar(
+        DATA / "Artistes_Similaires_Spotify" / "output_related.csv"
+    )
+
+
+@st.cache_data
+def get_spotify_id_index() -> dict[str, str]:
+    """Index nom_artiste → spotify_id, pour le player embed."""
+    return load_spotify_id_index(
+        DATA / "Artistes_Similaires_Spotify" / "output_related.csv"
+    )
+
+
+@st.cache_data
+def get_biblio() -> set[str]:
+    """Artistes en bibliothèque physique (tels que scannés par A_Recuperer --scan-library)."""
+    p = DATA / "Bibliotheque" / "bibliotheque.csv"
+    if not p.exists():
+        return set()
+    df = pd.read_csv(p)
+    if 'Artist' not in df.columns:
+        return set()
+    return set(df['Artist'].dropna().unique())
+
+
+@st.cache_data
+def get_playlists_artists() -> set[str]:
+    """Artistes présents dans toutes les playlists Spotify.
+
+    Les pistes "featuring" exposent plusieurs artistes séparés par virgule
+    (ex : "Daft Punk, Pharrell Williams"). On split et on garde tous les noms,
+    pour que l'exclusion soit complète.
+    """
+    folder = DATA / "Playlists_Spotify"
+    artists = set()
+    if not folder.exists():
+        return artists
+    for f in folder.glob("*.csv"):
+        try:
+            df = pd.read_csv(f)
+        except Exception:
+            continue
+        if 'Artist' not in df.columns:
+            continue
+        for value in df['Artist'].dropna():
+            for part in str(value).split(','):
+                part = part.strip()
+                if part:
+                    artists.add(part)
+    return artists
+
+
+@st.cache_data
+def get_seeds_pool() -> list[str]:
+    """Pool d'artistes pour l'autocomplétion : biblio ∪ playlists, trié."""
+    return sorted(get_biblio() | get_playlists_artists())
+
+
+@st.cache_data
+def get_excluded() -> set[str]:
+    """Artistes à exclure des recommandations : biblio + playlists.
+
+    NB : les dislikes (👎) viennent en plus mais sont gérés sans cache pour
+    refléter immédiatement les votes d'une session.
+    """
+    return get_biblio() | get_playlists_artists()
+
+
+@st.cache_data
+def get_all_genres() -> list[str]:
+    """Tous les genres présents dans les tags Last.fm, dédupliqués et triés."""
+    tags = get_lastfm_tags()
+    all_tags: set[str] = set()
+    for t_list in tags.values():
+        all_tags.update(t_list)
+    return sorted(all_tags)
