@@ -397,6 +397,7 @@ def diversify_mmr(
     recs: list[Recommendation],
     diversity_weight: float,
     n: int,
+    tag_sim_index: dict[str, dict[str, float]] | None = None,
 ) -> list[Recommendation]:
     """Re-classement façon MMR (Maximal Marginal Relevance) basé sur les tags.
 
@@ -424,6 +425,20 @@ def diversify_mmr(
     if max_score <= 0:
         return recs[:n]
 
+    # Si un index de similarité de tags est fourni, on utilise le soft Jaccard
+    # (similarité graduée via co-occurrence). Sinon, fallback sur Jaccard binaire.
+    if tag_sim_index is not None:
+        from tag_similarity import soft_jaccard
+
+        def tag_sim(a: list[str], b: list[str]) -> float:
+            return soft_jaccard(a, b, tag_sim_index)
+    else:
+        def tag_sim(a: list[str], b: list[str]) -> float:
+            return _jaccard(
+                set(t.lower() for t in a),
+                set(t.lower() for t in b),
+            )
+
     selected: list[Recommendation] = [recs[0]]
     candidates = list(recs[1:])
 
@@ -431,12 +446,8 @@ def diversify_mmr(
         best_idx = 0
         best_mmr = -float("inf")
         for i, c in enumerate(candidates):
-            tags_c = set(t.lower() for t in c.tags)
             max_sim = max(
-                (
-                    _jaccard(tags_c, set(t.lower() for t in s.tags))
-                    for s in selected
-                ),
+                (tag_sim(c.tags, s.tags) for s in selected),
                 default=0.0,
             )
             mmr = lam * (c.score / max_score) - (1 - lam) * max_sim
@@ -463,6 +474,8 @@ def recommend(
     popularity_penalty: float = 0.0,
     artist_popularity: dict[str, int] | None = None,
     genre_filter_mode: str = "OR",
+    tag_sim_index: dict[str, dict[str, float]] | None = None,
+    genre_expansion_threshold: float = 1.0,
 ) -> list[Recommendation]:
     """Calcule le top N des recommandations.
 
@@ -485,6 +498,12 @@ def recommend(
         artist_popularity : pré-calcul de `compute_artist_popularity()`. Requis si
             `popularity_penalty > 0`.
         genre_filter_mode : "OR" (défaut, un tag suffit) ou "AND" (tous requis).
+        tag_sim_index : index de co-occurrence de tags (sortie de
+            `tag_similarity.build_tag_cooccurrence`). Activé pour le MMR
+            (soft Jaccard) et le filtre genre étendu.
+        genre_expansion_threshold : ∈ [0, 1] — seuil de proximité pour étendre
+            le filtre genre. 1.0 = filtre strict (défaut), 0.3 = inclut les
+            tags voisins proches (techno → minimal techno, etc.).
 
     Returns:
         Liste de `Recommendation` triée par MMR si diversification, sinon par score.
@@ -542,7 +561,16 @@ def recommend(
     # comparable entre runs (différents nombres de seeds, différents poids).
     seeds_weight_sum = sum(seeds.values()) or 1.0
 
-    genre_filter_lower = [g.lower() for g in genre_filter]
+    # Préparation du filtre genre : expansion via similarité si demandé
+    if genre_filter and tag_sim_index is not None and genre_expansion_threshold < 1.0:
+        from tag_similarity import expand_genre_filter
+        genre_groups = [
+            expand_genre_filter([g], tag_sim_index, genre_expansion_threshold)
+            for g in genre_filter
+        ]
+    else:
+        genre_groups = [{g.lower()} for g in genre_filter]
+
     pop_map = artist_popularity or {}
     recs = []
     for artist, agg in candidates.items():
@@ -565,13 +593,13 @@ def recommend(
 
         tags = lastfm_tags.get(artist, [])
 
-        if genre_filter_lower:
-            tags_lower = [t.lower() for t in tags]
+        if genre_groups:
+            tags_lower = {t.lower() for t in tags}
             if genre_filter_mode == "AND":
-                if not all(g in tags_lower for g in genre_filter_lower):
+                if not all(group & tags_lower for group in genre_groups):
                     continue
             else:
-                if not any(g in tags_lower for g in genre_filter_lower):
+                if not any(group & tags_lower for group in genre_groups):
                     continue
 
         recs.append(Recommendation(
@@ -593,7 +621,10 @@ def recommend(
 
     if diversity_weight > 0:
         pool_size = min(len(recs), max(n_results * 5, 30))
-        out = diversify_mmr(recs[:pool_size], diversity_weight, n_results)
+        out = diversify_mmr(
+            recs[:pool_size], diversity_weight, n_results,
+            tag_sim_index=tag_sim_index,
+        )
         logger.info(
             "MMR appliqué (pool=%d → top %d) en %.2fs",
             pool_size, len(out), time.time() - t0,

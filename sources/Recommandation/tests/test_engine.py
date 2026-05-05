@@ -363,6 +363,62 @@ def test_recommend_genre_filter_and_mode():
     assert {r.artist for r in recs_and} == {"Both"}
 
 
+def test_genre_expansion_via_sim_index():
+    """Avec un sim_index et un seuil, le filtre genre s'étend aux tags proches."""
+    lastfm_sim = {
+        "S": [
+            {"name": "Mini", "match": 0.9, "rank": 1},
+            {"name": "Jazzy", "match": 0.8, "rank": 2},
+        ],
+    }
+    tags = {
+        "Mini": ["minimal techno"],   # tag voisin de "techno"
+        "Jazzy": ["jazz"],             # disjoint
+    }
+    sim_index = {
+        "techno": {"minimal techno": 0.4},
+        "minimal techno": {"techno": 0.4},
+    }
+
+    # Filtre strict (threshold=1.0) : seul "techno" cherché → personne ne match
+    recs_strict = recommend(
+        seeds={"S": 1.0}, lastfm_similar=lastfm_sim, spotify_similar={},
+        lastfm_tags=tags, excluded=set(), history_minutes_map={},
+        lastfm_weight=1.0, history_boost=0.0,
+        genre_filter=["techno"], n_results=10,
+        tag_sim_index=sim_index, genre_expansion_threshold=1.0,
+    )
+    assert len(recs_strict) == 0
+
+    # Filtre étendu (threshold=0.3) : "techno" expand à "minimal techno"
+    recs_expanded = recommend(
+        seeds={"S": 1.0}, lastfm_similar=lastfm_sim, spotify_similar={},
+        lastfm_tags=tags, excluded=set(), history_minutes_map={},
+        lastfm_weight=1.0, history_boost=0.0,
+        genre_filter=["techno"], n_results=10,
+        tag_sim_index=sim_index, genre_expansion_threshold=0.3,
+    )
+    assert len(recs_expanded) == 1
+    assert recs_expanded[0].artist == "Mini"
+
+
+def test_diversify_uses_soft_jaccard_when_index_provided():
+    """Avec sim_index, MMR pénalise les tags proches même s'ils diffèrent."""
+    recs = [
+        _make_rec("A", 1.0, ["techno"]),
+        _make_rec("B", 0.95, ["minimal techno"]),  # proche de A via sim
+        _make_rec("C", 0.5, ["jazz"]),
+    ]
+    sim_index = {
+        "techno": {"minimal techno": 0.5},
+        "minimal techno": {"techno": 0.5},
+    }
+    out = diversify_mmr(recs, diversity_weight=1.0, n=2, tag_sim_index=sim_index)
+    # Avec MMR souple, B est pénalisé (proche de A) → C doit passer en 2e
+    assert out[0].artist == "A"
+    assert out[1].artist == "C"
+
+
 def test_recommend_empty_seeds():
     recs = recommend(
         seeds={}, lastfm_similar={}, spotify_similar={}, lastfm_tags={},

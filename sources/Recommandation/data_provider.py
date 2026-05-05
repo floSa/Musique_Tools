@@ -56,6 +56,13 @@ def get_spotify_similar() -> dict[str, list[dict]]:
 
 
 @st.cache_data
+def get_tag_similarity_index() -> dict[str, dict[str, float]]:
+    """Index de similarité tags via co-occurrence sur les artistes Last.fm."""
+    from tag_similarity import build_tag_cooccurrence
+    return build_tag_cooccurrence(get_lastfm_tags())
+
+
+@st.cache_data
 def get_artist_popularity() -> dict[str, int]:
     """Popularité (nb de fois où l'artiste est cité comme similaire) — cache."""
     return compute_artist_popularity(

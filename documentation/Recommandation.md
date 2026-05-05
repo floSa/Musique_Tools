@@ -29,6 +29,7 @@ sources/Recommandation/
 ├── session_log.py      # Persistance des sessions de recos (data/Recommandation/sessions.csv)
 ├── sync_seeds.py       # Synchro biblio+playlists → artistes_liste.csv
 ├── expand_base.py      # Crawl en largeur : top N artistes les plus cités → artistes_liste.csv
+├── tag_similarity.py   # Index co-occurrence des tags Last.fm (similarité graduée)
 ├── tests/
 │   └── test_engine.py  # Tests unitaires du moteur
 ├── requirements.txt
@@ -326,6 +327,7 @@ bruités).
 | Pénalité popularité | 0–2 | 0.0 | ω — dampe les artistes génériques (TF-IDF) |
 | Filtre genres | multi | [] | Tags Last.fm |
 | Mode filtre | OR / AND | OR | OR = un suffit, AND = tous requis |
+| Tolérance genres proches | 0–1 | 1.0 | 1.0 = strict, 0.3 = inclut tags voisins (techno → minimal techno) |
 | Bouton "Synchroniser" | — | — | Met à jour artistes_liste.csv avec biblio+playlists |
 | Bouton ➕ par reco | — | — | Ajoute un artiste recommandé à artistes_liste.csv |
 
@@ -357,6 +359,71 @@ uv run streamlit run app.py
 ```
 
 L'interface s'ouvre sur [http://localhost:8501](http://localhost:8501).
+
+---
+
+## Similarité entre tags (co-occurrence)
+
+**Problème.** Les tags Last.fm sont des chaînes opaques :
+- "techno" et "minimal techno" sont traités comme **totalement différents**
+- Le filtre genre "techno" rate les artistes taggés "minimal techno", "tech house"
+- La diversification MMR croit varier les genres mais ne joue qu'avec la nomenclature
+
+**Solution : index par co-occurrence.** Deux tags sont d'autant plus proches
+qu'ils apparaissent sur les mêmes artistes :
+
+```
+sim(t1, t2) = |A(t1) ∩ A(t2)| / sqrt(|A(t1)| × |A(t2)|)
+```
+
+C'est le **cosinus** entre les vecteurs d'incidence artiste→tag (équivalent à
+la similarité d'Ochiai). Aucune ontologie à maintenir — la proximité émerge
+des données. Spécifique à ton corpus : si tu écoutes beaucoup d'électro, les
+sous-genres électro seront bien différenciés ; idem pour le classique, etc.
+
+**Construction**
+
+`build_tag_cooccurrence(lastfm_tags)` retourne un dict imbriqué
+`sim[t1][t2] = cosinus`. Sur ~5000 artistes / ~800 tags, l'index se construit
+en ~50 ms et stocke ~4000 paires (sparse, seuil 0.05). Mis en cache via
+`@st.cache_data` dans Streamlit.
+
+**Exemples sur tes données**
+
+```
+Voisins de 'techno' :
+  minimal              0.389
+  minimal techno       0.329
+  electronic           0.229
+  tech house           0.183
+  electro              0.157
+
+Voisins de 'french' :
+  chanson francaise    0.425
+  france               0.397
+  chanson              0.322
+  french pop           0.208
+```
+
+**Application 1 — diversité MMR plus fine**
+
+Le `diversify_mmr` utilise désormais un **soft Jaccard** quand l'index est
+fourni : pour chaque paire de candidats, on calcule la similarité graduée
+entre leurs tags, pas un simple intersection-vs-union binaire. Conséquence :
+deux artistes taggés "techno" et "minimal techno" sont reconnus comme proches
+et la diversification les sépare correctement.
+
+**Application 2 — filtre genre étendu**
+
+Slider **"Tolérance genres proches"** (0–1, défaut 1.0) :
+- 1.0 : filtre strict, comportement précédent (seul le tag exact)
+- 0.3 : inclut les tags très proches (techno → minimal techno, tech house)
+- 0.0 : inclut tous les voisins même éloignés
+
+Le filtre AND/OR s'applique ensuite sur les **groupes étendus** : si tu choisis
+`AND ["rock", "indie"]` avec expansion 0.3, un artiste passe s'il a au moins
+un tag dans le groupe étendu de "rock" **ET** au moins un tag dans le groupe
+étendu de "indie".
 
 ---
 

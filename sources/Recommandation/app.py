@@ -29,6 +29,7 @@ from data_provider import (
     get_seeds_pool,
     get_spotify_id_index,
     get_spotify_similar,
+    get_tag_similarity_index,
 )
 import feedback
 import session_log
@@ -66,6 +67,7 @@ with st.spinner("Chargement des données..."):
     spotify_sim = get_spotify_similar()
     spotify_id_index = get_spotify_id_index()
     artist_popularity = get_artist_popularity()
+    tag_sim_index = get_tag_similarity_index()
     excluded_static = get_excluded()
     seeds_pool = get_seeds_pool()
     all_genres = get_all_genres()
@@ -173,6 +175,15 @@ with st.sidebar:
         horizontal=True,
         help="OR : un tag suffit. AND : tous les tags choisis doivent être présents.",
     )
+    genre_expansion = st.slider(
+        "Tolérance genres proches",
+        0.0, 1.0, 1.0,
+        step=0.05,
+        help="1.0 = filtre strict (seul le tag exact). "
+             "0.3 = inclut les tags très proches (techno → minimal techno, "
+             "tech house). 0.0 = inclut tous les voisins même éloignés. "
+             "Basé sur la co-occurrence des tags sur les artistes."
+    )
 
     st.divider()
     st.subheader("🔄 Couverture seeds")
@@ -257,6 +268,8 @@ if go:
             popularity_penalty=popularity_penalty,
             artist_popularity=artist_popularity,
             genre_filter_mode=genre_filter_mode,
+            tag_sim_index=tag_sim_index,
+            genre_expansion_threshold=genre_expansion,
         )
     st.session_state.recs = recs
     st.session_state.last_run_seeds = dict(seeds)
@@ -271,6 +284,7 @@ if go:
             "recent_months": recent_months if use_history_seeds else None,
             "genre_filter": "|".join(selected_genres) if selected_genres else "",
             "genre_mode": genre_filter_mode,
+            "genre_expansion": genre_expansion,
         }
         session_log.save_session(recs, seeds, params)
 
