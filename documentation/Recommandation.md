@@ -351,6 +351,20 @@ Pour chaque recommandation :
 
 ## Lancement
 
+> 💽 **Prérequis : disque M: monté dans WSL**
+> La bibliothèque physique (`/mnt/m/musiques/__Autres`) est lue pour construire
+> la liste des artistes exclus et le pool de seeds.
+>
+> ```bash
+> # Montage temporaire (à refaire à chaque redémarrage WSL)
+> sudo mkdir -p /mnt/m
+> sudo mount -t drvfs M: /mnt/m
+>
+> # Montage permanent via /etc/fstab (une seule fois)
+> echo 'M: /mnt/m drvfs defaults,uid=1000,gid=1000 0 0' | sudo tee -a /etc/fstab
+> sudo mount -a
+> ```
+
 ```bash
 cd sources/Recommandation
 uv venv .venv --python 3.12
@@ -464,14 +478,41 @@ uv run python expand_base.py --top-n 500   # Plus large
 uv run python expand_base.py --min-citations 20  # Seuil plus strict (moins de bruit)
 ```
 
+> ⚠️ **`expand_base.py` seul ne suffit pas** — il ajoute les artistes à
+> `artistes_liste.csv` mais ne les scrape pas. Il faut toujours enchaîner
+> avec les deux scrapers (étapes 2 et 3 ci-dessous).
+
+**Séquence complète (à lancer dans cet ordre)**
+
+```bash
+# 1. Élargir la liste des seeds
+cd ~/mes_projets/Musique_Tools/sources/Recommandation
+uv run python expand_base.py
+
+# 2. Scraper les nouveaux artistes sur Last.fm
+cd ~/mes_projets/Musique_Tools/sources/Artistes_Similaires_LastFM
+uv run python main.py
+# (reprend automatiquement là où il s'est arrêté — skip des déjà scrapés)
+
+# 3. Scraper les nouveaux artistes sur Spotify
+cd ~/mes_projets/Musique_Tools/sources/Artistes_Similaires_Spotify
+uv run python main.py
+# (idem, skip automatique)
+
+# 4. Relancer l'app Streamlit (si elle tournait déjà, les caches se vident au prochain rerun)
+cd ~/mes_projets/Musique_Tools/sources/Recommandation
+uv run streamlit run app.py
+```
+
+Les étapes 2 et 3 peuvent durer plusieurs heures selon le nombre de nouveaux
+artistes. Tu peux les lancer en arrière-plan dans deux terminaux séparés — ils
+sont indépendants l'un de l'autre.
+
 **Cycle de vie typique**
 
 1. Tu utilises l'app, identifies des artistes qui te plaisent → 👍 ou bouton ➕
-2. De temps en temps : `uv run python expand_base.py` (un scan large)
-3. Relancer les scrapers (`Artistes_Similaires_LastFM/main.py` et
-   `Artistes_Similaires_Spotify/main.py`) — ils traitent uniquement les
-   nouveaux artistes (skip automatique des déjà scrapés)
-4. La base s'enrichit et l'app a accès à plus d'artistes en seed possible
+2. De temps en temps : séquence complète ci-dessus (un scan large, ex. top 200)
+3. La base s'enrichit et l'app a accès à plus d'artistes en seed possible
    et plus de précision dans les similarités
 
 **Choix des défauts**
