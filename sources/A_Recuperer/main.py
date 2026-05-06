@@ -112,6 +112,26 @@ def cmd_match(playlist: str | None = None):
         print(f"Bibliothèque non trouvée ({BIBLIOTHEQUE_CSV}). Lance d'abord --scan-library.")
         return
 
+    # Élargissement de la biblio : si un fichier `Albums_musique_AAAA_MM.xlsx`
+    # existe dans data/Ressources/, on prend le plus récent (tri lexical sur
+    # AAAA_MM = chronologique) et on l'unionne à bibliotheque.csv. Ce fichier
+    # liste les albums "considérés possédés" plus largement que le scan disque
+    # (acquisitions pas encore organisées dans M:, formats hors filesystem,
+    # etc). Sans ce fichier, comportement inchangé (biblio.csv seule).
+    albums_xlsx_files = sorted(RESSOURCES_DIR.glob("Albums_musique_*.xlsx"))
+    if albums_xlsx_files:
+        latest_xlsx = albums_xlsx_files[-1]
+        print(f"Élargissement biblio via {latest_xlsx.name}...")
+        df_xlsx = pd.read_excel(latest_xlsx)
+        # On garde Artist + Album, et Path si présent dans biblio.csv (sinon vide)
+        df_xlsx_norm = df_xlsx[["Artist", "Album"]].copy()
+        if "Path" in df_biblio.columns:
+            df_xlsx_norm["Path"] = ""
+        before = len(df_biblio)
+        df_biblio = pd.concat([df_biblio, df_xlsx_norm], ignore_index=True)
+        df_biblio = df_biblio.drop_duplicates(subset=["Artist", "Album"]).reset_index(drop=True)
+        print(f"  Biblio élargie : {before} → {len(df_biblio)} entrées (+{len(df_biblio) - before})")
+
     print("Chargement des recherches déjà effectuées...")
     if RECHERCHES_XLSX.exists():
         df_recherches = load_recherches_effectuees(RECHERCHES_XLSX)
@@ -133,11 +153,16 @@ def cmd_match(playlist: str | None = None):
 
     print(f"Matching {len(df_to_match)} albums vs {len(df_biblio_clean)} albums en bibliothèque...")
     df_match = match_albums_with_fuzz(
-        df_to_match.rename(columns={'Artist': 'Artist', 'Album': 'Album'}),
-        df_biblio_clean.rename(columns={'Artist': 'Artist', 'Album': 'Album'}),
+        df_to_match,
+        df_biblio_clean,
         name_tester="Playlist",
         name_ressource="Biblio",
         artist_similarity_threshold=ARTIST_THRESHOLD,
+        # Match sur les versions normalisées (sans accents, sans casse, sans
+        # parenthèses) pour éviter "Témé Tan" ≠ "Teme Tan". Les colonnes
+        # Artist/Album restent en brut pour l'affichage.
+        artist_match_col='Artist_clean',
+        album_match_col='Album_clean',
     )
 
     # Keep albums NOT in library (album_sim < threshold) and NOT already researched
