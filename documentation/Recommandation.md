@@ -50,6 +50,7 @@ l'UI (et de le réutiliser dans un notebook ou une CLI le cas échéant).
 | Historique d'écoute | `data/Historique_Spotify/*.json` | **Pondération** : top artistes → seeds, et boost des artistes déjà entendus |
 | Similaires Last.fm | `data/Artistes_Similaires_LastFM/similar_artists.db` | Source de similarité (score 0–1) + tags pour le filtre genre |
 | Similaires Spotify | `data/Artistes_Similaires_Spotify/similar_artists.db` | Source de similarité (rang 1–40), DB SQLite alignée sur Last.fm |
+| Similaires Qobuz | `data/Artistes_Similaires_Qobuz/similar_artists.db` | Source de similarité (rang 1–~80), bio "Portrait" propagée sur les recos |
 | Feedback utilisateur | `data/Recommandation/feedback.csv` | **Exclusion** des 👎, mémorisation des 👍 |
 
 Les playlists `Titres_AAAA.csv` et thématiques sont toutes incluses dans
@@ -73,17 +74,27 @@ que ça te plaise". D'où le **boost historique** plutôt qu'une exclusion.
 
 ### 2. Pourquoi deux sources de similarité (Last.fm + Spotify) ?
 
-| Critère | Last.fm | Spotify |
-|---|---|---|
-| Granularité | Score continu 0–1 | Rang discret 1–40 |
-| Population | Utilisateurs Last.fm (audiophiles, indé) | Utilisateurs Spotify (mainstream + tout) |
-| Algorithmie | Co-écoutes | Mélange opaque (audio + co-écoutes + édito) |
-| Couverture | ~5500 artistes pour ce projet | ~6300 artistes pour ce projet |
-| Stockage | SQLite (`similar_artists.db`) | SQLite (`similar_artists.db`, schéma aligné) |
+| Critère | Last.fm | Spotify | Qobuz |
+|---|---|---|---|
+| Granularité | Score continu 0–1 | Rang discret 1–40 | Rang discret 1–~80 |
+| Population | Audiophiles, indé | Mainstream + tout | Public francophone audiophile |
+| Algorithmie | Co-écoutes | Mélange opaque | Édito + co-écoutes |
+| Bonus | Tags / genres riches | — | Bio "Portrait" |
+| Couverture | ~5500 artistes pour ce projet | ~6300 artistes pour ce projet | progressive (à scraper) |
+| Stockage | SQLite (`similar_artists.db`) | SQLite (`similar_artists.db`) | SQLite (`similar_artists.db`) |
 
-Les deux sources se complètent. Le slider `α` ("Last.fm vs Spotify") permet
-de privilégier l'une ou l'autre selon ce qu'on cherche : Last.fm tend à
-ramener des artistes plus pointus, Spotify est plus mainstream.
+Les trois sources se complètent. Côté UI, **deux sliders** (`α_lfm`, `α_qbz`)
+suffisent à doser les pondérations ; le poids Spotify est déduit
+(`α_spt = max(0, 1 − α_lfm − α_qbz)`) et affiché en "effectif".
+
+La formule de score combiné devient :
+
+    score(c) = α_lfm × s_lastfm(c) + α_spt × s_spotify(c) + α_qbz × s_qobuz(c)
+
+Trois cas typiques :
+- Pas encore scrapé Qobuz → `α_qbz = 0` (équivalent au comportement précédent)
+- Trois sources équilibrées → 0.4 / 0.2 / 0.4 (Spotify = 0.4 effectif)
+- Tester Qobuz seul → `α_lfm = 0`, `α_qbz = 1`
 
 ### 3. Conversion du rang Spotify en score
 

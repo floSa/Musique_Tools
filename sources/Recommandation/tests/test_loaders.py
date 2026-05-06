@@ -14,6 +14,8 @@ import pytest
 from engine import (
     load_lastfm_similar,
     load_lastfm_tags,
+    load_qobuz_portraits,
+    load_qobuz_similar,
     load_spotify_id_index,
     load_spotify_similar,
 )
@@ -152,6 +154,69 @@ def test_load_spotify_id_index_filters_invalid(tmp_path):
 
     idx = load_spotify_id_index(db)
     assert "A" not in idx
+
+
+# ---------------------------------------------------------------------------
+# Qobuz SQLite
+# ---------------------------------------------------------------------------
+
+def _make_qobuz_db(tmp_path: Path) -> Path:
+    db = tmp_path / "qobuz.db"
+    conn = sqlite3.connect(str(db))
+    conn.execute(
+        """
+        CREATE TABLE artists (
+            source_artist TEXT PRIMARY KEY,
+            source_artist_id TEXT,
+            similar_artists TEXT,
+            portrait TEXT,
+            tags TEXT DEFAULT '[]',
+            status TEXT DEFAULT 'success'
+        )
+        """
+    )
+    conn.execute(
+        "INSERT INTO artists VALUES (?, ?, ?, ?, '[]', 'success')",
+        (
+            "Worakls",
+            "525535",
+            json.dumps([
+                {"name": "Joachim Pastor", "id": "843818", "rank": 1},
+                {"name": "NTO", "id": "952600", "rank": 2},
+            ]),
+            "Worakls est un artiste français de musique électronique mélodique...",
+        ),
+    )
+    conn.execute(
+        "INSERT INTO artists VALUES (?, ?, ?, ?, '[]', 'success')",
+        ("Sans bio", "999", json.dumps([{"name": "X", "id": "1", "rank": 1}]), ""),
+    )
+    conn.commit()
+    conn.close()
+    return db
+
+
+def test_load_qobuz_similar(tmp_path):
+    db = _make_qobuz_db(tmp_path)
+    sim = load_qobuz_similar(db)
+
+    assert "Worakls" in sim
+    assert sim["Worakls"][0] == {"name": "Joachim Pastor", "rank": 1}
+    assert sim["Worakls"][1] == {"name": "NTO", "rank": 2}
+
+
+def test_load_qobuz_similar_missing_db(tmp_path):
+    assert load_qobuz_similar(tmp_path / "absent.db") == {}
+
+
+def test_load_qobuz_portraits(tmp_path):
+    db = _make_qobuz_db(tmp_path)
+    portraits = load_qobuz_portraits(db)
+
+    assert "Worakls" in portraits
+    assert "musique électronique" in portraits["Worakls"]
+    # Les artistes sans bio sont absents du dict (cohérent avec un .get() côté UI)
+    assert "Sans bio" not in portraits
 
 
 # ---------------------------------------------------------------------------

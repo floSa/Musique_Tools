@@ -426,3 +426,106 @@ def test_recommend_empty_seeds():
         lastfm_weight=0.5, history_boost=0.3, genre_filter=[], n_results=5,
     )
     assert recs == []
+
+
+# ---------------------------------------------------------------------------
+# Qobuz : 3e source de similarité
+# ---------------------------------------------------------------------------
+
+def test_qobuz_rank_to_score():
+    from engine import qobuz_rank_to_score, QOBUZ_MAX_RANK
+    assert qobuz_rank_to_score(1) == 1.0
+    assert qobuz_rank_to_score(QOBUZ_MAX_RANK) == pytest.approx(0.02, abs=1e-3)
+    assert qobuz_rank_to_score(QOBUZ_MAX_RANK + 10) == 0.0
+    assert qobuz_rank_to_score(0) == 0.0
+    # Strictement décroissant
+    assert qobuz_rank_to_score(2) < qobuz_rank_to_score(1)
+
+
+def test_recommend_qobuz_only():
+    """qobuz_weight=1, lastfm_weight=0 → score basé uniquement sur Qobuz."""
+    qobuz_sim = {
+        "S": [
+            {"name": "TopMatch", "rank": 1},
+            {"name": "FarMatch", "rank": 30},
+        ]
+    }
+    recs = recommend(
+        seeds={"S": 1.0},
+        lastfm_similar={}, spotify_similar={}, lastfm_tags={},
+        excluded=set(), history_minutes_map={},
+        lastfm_weight=0.0, qobuz_weight=1.0,
+        history_boost=0.0, genre_filter=[], n_results=10,
+        qobuz_similar=qobuz_sim,
+    )
+    assert recs[0].artist == "TopMatch"
+    assert recs[0].qobuz_score > recs[1].qobuz_score
+    # Spotify et Last.fm doivent être à 0 (pas de données)
+    assert recs[0].lastfm_score == 0.0
+    assert recs[0].spotify_score == 0.0
+
+
+def test_recommend_three_sources_combined():
+    """Avec lastfm + spotify + qobuz pondérés à 0.4/0.3/0.3, les 3 contribuent."""
+    lastfm_sim = {"S": [{"name": "X", "match": 1.0, "rank": 1}]}
+    spotify_sim = {"S": [{"name": "X", "rank": 1}]}
+    qobuz_sim = {"S": [{"name": "X", "rank": 1}]}
+
+    recs = recommend(
+        seeds={"S": 1.0},
+        lastfm_similar=lastfm_sim, spotify_similar=spotify_sim,
+        lastfm_tags={}, excluded=set(), history_minutes_map={},
+        lastfm_weight=0.4, qobuz_weight=0.3,
+        history_boost=0.0, genre_filter=[], n_results=10,
+        qobuz_similar=qobuz_sim,
+    )
+    rec = recs[0]
+    assert rec.artist == "X"
+    assert rec.lastfm_score == 1.0
+    assert rec.spotify_score == 1.0
+    assert rec.qobuz_score == 1.0
+    # spotify_weight = 1 - 0.4 - 0.3 = 0.3 ; score = 0.4*1 + 0.3*1 + 0.3*1 = 1.0
+    assert rec.score == pytest.approx(1.0)
+
+
+def test_recommend_qobuz_weight_clamped():
+    """Si lastfm + qobuz > 1, spotify_weight est clampé à 0 (pas de score négatif)."""
+    qobuz_sim = {"S": [{"name": "X", "rank": 1}]}
+    spotify_sim = {"S": [{"name": "Y", "rank": 1}]}
+    recs = recommend(
+        seeds={"S": 1.0},
+        lastfm_similar={}, spotify_similar=spotify_sim, lastfm_tags={},
+        excluded=set(), history_minutes_map={},
+        lastfm_weight=0.7, qobuz_weight=0.6,  # somme > 1
+        history_boost=0.0, genre_filter=[], n_results=10,
+        qobuz_similar=qobuz_sim,
+    )
+    # X (Qobuz) doit dominer ; Y (Spotify) a un poids effectif 0
+    assert recs[0].artist == "X"
+    y_recs = [r for r in recs if r.artist == "Y"]
+    assert all(r.score == 0 for r in y_recs)
+
+
+def test_recommend_portrait_propagation():
+    """Le portrait Qobuz est propagé sur la recommandation finale."""
+    qobuz_sim = {"S": [{"name": "X", "rank": 1}]}
+    recs = recommend(
+        seeds={"S": 1.0},
+        lastfm_similar={}, spotify_similar={}, lastfm_tags={},
+        excluded=set(), history_minutes_map={},
+        lastfm_weight=0.0, qobuz_weight=1.0,
+        history_boost=0.0, genre_filter=[], n_results=10,
+        qobuz_similar=qobuz_sim,
+        qobuz_portraits={"X": "Bio fictive de X."},
+    )
+    assert recs[0].portrait == "Bio fictive de X."
+
+
+def test_compute_artist_popularity_with_qobuz():
+    lastfm = {"S1": [{"name": "A", "match": 1.0, "rank": 1}]}
+    spotify = {"S2": [{"name": "A", "rank": 1}]}
+    qobuz = {"S3": [{"name": "A", "rank": 1}, {"name": "B", "rank": 2}]}
+    pop = compute_artist_popularity(lastfm, spotify, qobuz)
+    # A apparaît dans les trois → 3
+    assert pop["A"] == 3
+    assert pop["B"] == 1

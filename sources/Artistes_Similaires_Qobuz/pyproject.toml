@@ -1,0 +1,10 @@
+[project]
+name = "artistes-similaires-qobuz"
+version = "0.1.0"
+description = "Scraper Qobuz Play — artistes similaires + portrait via play.qobuz.com"
+requires-python = ">=3.12"
+dependencies = [
+    "playwright>=1.55.0",
+    "playwright-stealth>=1.0.6",
+    "pandas>=2.0.0",
+]

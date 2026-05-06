@@ -33,6 +33,7 @@ import pandas as pd
 from engine import (
     compute_artist_popularity,
     load_lastfm_similar,
+    load_qobuz_similar,
     load_spotify_similar,
     normalize_artist,
 )
@@ -43,6 +44,7 @@ DATA = Path(__file__).parent.parent.parent / "data"
 ARTISTES_LISTE_CSV = DATA / "Ressources" / "artistes_liste.csv"
 LASTFM_DB = DATA / "Artistes_Similaires_LastFM" / "similar_artists.db"
 SPOTIFY_DB = DATA / "Artistes_Similaires_Spotify" / "similar_artists.db"
+QOBUZ_DB = DATA / "Artistes_Similaires_Qobuz" / "similar_artists.db"
 BIBLIO_CSV = DATA / "Bibliotheque" / "bibliotheque.csv"
 PLAYLISTS_DIR = DATA / "Playlists_Spotify"
 
@@ -64,6 +66,16 @@ def _load_spotify_sources() -> set[str]:
     if not SPOTIFY_DB.exists():
         return set()
     conn = sqlite3.connect(str(SPOTIFY_DB))
+    cur = conn.execute("SELECT source_artist FROM artists WHERE status='success'")
+    sources = {row[0] for row in cur.fetchall()}
+    conn.close()
+    return sources
+
+
+def _load_qobuz_sources() -> set[str]:
+    if not QOBUZ_DB.exists():
+        return set()
+    conn = sqlite3.connect(str(QOBUZ_DB))
     cur = conn.execute("SELECT source_artist FROM artists WHERE status='success'")
     sources = {row[0] for row in cur.fetchall()}
     conn.close()
@@ -111,10 +123,11 @@ def expand(top_n: int, min_citations: int, dry_run: bool) -> int:
     print(f"Chargement des bases de similarité...")
     lastfm_sim = load_lastfm_similar(LASTFM_DB)
     spotify_sim = load_spotify_similar(SPOTIFY_DB)
-    pop = compute_artist_popularity(lastfm_sim, spotify_sim)
+    qobuz_sim = load_qobuz_similar(QOBUZ_DB)
+    pop = compute_artist_popularity(lastfm_sim, spotify_sim, qobuz_sim)
     print(f"  {len(pop)} artistes uniques cités comme similaires")
 
-    sources = _load_lastfm_sources() | _load_spotify_sources()
+    sources = _load_lastfm_sources() | _load_spotify_sources() | _load_qobuz_sources()
     existing = _load_existing_seeds()
     excluded = _load_biblio() | _load_playlists() | feedback.get_disliked()
 

@@ -26,6 +26,8 @@ from data_provider import (
     get_history_minutes,
     get_lastfm_similar,
     get_lastfm_tags,
+    get_qobuz_portraits,
+    get_qobuz_similar,
     get_seeds_pool,
     get_spotify_id_index,
     get_spotify_similar,
@@ -45,7 +47,7 @@ st.set_page_config(page_title="Recommandation d'artistes", layout="wide")
 st.title("🎵 Découverte d'artistes")
 st.caption(
     "Recommande des artistes que tu ne possèdes pas encore (ni en biblio, "
-    "ni dans tes playlists), basés sur la similarité Last.fm + Spotify "
+    "ni dans tes playlists), basés sur la similarité Last.fm + Spotify + Qobuz "
     "des artistes que tu aimes déjà."
 )
 
@@ -66,6 +68,8 @@ with st.spinner("Chargement des données..."):
     lastfm_tags = get_lastfm_tags()
     spotify_sim = get_spotify_similar()
     spotify_id_index = get_spotify_id_index()
+    qobuz_sim = get_qobuz_similar()
+    qobuz_portraits = get_qobuz_portraits()
     artist_popularity = get_artist_popularity()
     tag_sim_index = get_tag_similarity_index()
     excluded_static = get_excluded()
@@ -79,13 +83,14 @@ fb_stats = feedback.stats()
 excluded = excluded_static | disliked
 
 with st.expander("📊 Statistiques des données chargées"):
-    cols = st.columns(6)
+    cols = st.columns(7)
     cols[0].metric("Pool seeds (biblio + playlists)", len(seeds_pool))
     cols[1].metric("Last.fm en base", len(lastfm_sim))
     cols[2].metric("Spotify en base", len(spotify_sim))
-    cols[3].metric("Artistes historique", len(hist_minutes_map))
-    cols[4].metric("👍 likes", fb_stats["likes"])
-    cols[5].metric("👎 dislikes", fb_stats["dislikes"])
+    cols[3].metric("Qobuz en base", len(qobuz_sim))
+    cols[4].metric("Artistes historique", len(hist_minutes_map))
+    cols[5].metric("👍 likes", fb_stats["likes"])
+    cols[6].metric("👎 dislikes", fb_stats["dislikes"])
 
 # ---------------------------------------------------------------------------
 # Sidebar : paramètres
@@ -124,11 +129,24 @@ with st.sidebar:
 
     st.divider()
     st.subheader("📊 Sources de similarité")
-    lastfm_weight = st.slider(
-        "Last.fm vs Spotify",
-        0.0, 1.0, 0.5,
-        help="0 = Spotify seul, 1 = Last.fm seul. 0.5 = les deux à parts égales."
+    st.caption(
+        "Pondérations relatives des trois sources. La somme n'a pas besoin de "
+        "valoir 1 — la formule normalise automatiquement. Le poids Spotify est "
+        "déduit (`1 - Last.fm - Qobuz`, clampé ≥ 0)."
     )
+    lastfm_weight = st.slider(
+        "Poids Last.fm",
+        0.0, 1.0, 0.4, step=0.05,
+        help="Score de similarité 0–1 basé sur les co-écoutes Last.fm.",
+    )
+    qobuz_weight = st.slider(
+        "Poids Qobuz",
+        0.0, 1.0, 0.2, step=0.05,
+        help="Section 'Artistes similaires' de Qobuz (rang 1 = plus proche). "
+             "Plus pointu, axé public francophone audiophile.",
+    )
+    spotify_weight_effective = max(0.0, 1.0 - lastfm_weight - qobuz_weight)
+    st.caption(f"→ Poids Spotify effectif : **{spotify_weight_effective:.2f}**")
 
     st.divider()
     st.subheader("🎯 Boost historique")
@@ -219,7 +237,7 @@ if use_history_seeds:
 
 unknown_seeds = [
     s for s in seeds
-    if s not in lastfm_sim and s not in spotify_sim
+    if s not in lastfm_sim and s not in spotify_sim and s not in qobuz_sim
 ]
 
 # ---------------------------------------------------------------------------
@@ -270,6 +288,9 @@ if go:
             genre_filter_mode=genre_filter_mode,
             tag_sim_index=tag_sim_index,
             genre_expansion_threshold=genre_expansion,
+            qobuz_similar=qobuz_sim,
+            qobuz_weight=qobuz_weight,
+            qobuz_portraits=qobuz_portraits,
         )
     st.session_state.recs = recs
     st.session_state.last_run_seeds = dict(seeds)
@@ -277,6 +298,7 @@ if go:
     if recs:
         params = {
             "alpha_lastfm": lastfm_weight,
+            "alpha_qobuz": qobuz_weight,
             "beta_recent": recent_weight if use_history_seeds else None,
             "gamma_boost": history_boost,
             "lambda_diversity": diversity_weight,
@@ -311,6 +333,7 @@ if recs is not None:
                 "Cité par": r.citations,
                 "Last.fm": round(r.lastfm_score, 3),
                 "Spotify": round(r.spotify_score, 3),
+                "Qobuz": round(r.qobuz_score, 3),
                 "Histo.": "✓" if r.in_history else "",
                 "Min.": int(r.history_minutes),
                 "Genres": ", ".join(r.tags[:3]) if r.tags else "",
@@ -334,11 +357,15 @@ if recs is not None:
                 with cols[0]:
                     st.markdown(f"**Score Last.fm :** {r.lastfm_score:.3f}")
                     st.markdown(f"**Score Spotify :** {r.spotify_score:.3f}")
+                    st.markdown(f"**Score Qobuz :** {r.qobuz_score:.3f}")
                     st.markdown(f"**Cité par :** {r.citations} seeds")
                     if r.in_history:
                         st.markdown(f"**Historique :** {int(r.history_minutes)} min")
                     if r.tags:
                         st.markdown(f"**Tags :** {', '.join(r.tags)}")
+                    if r.portrait:
+                        with st.expander("📖 Portrait Qobuz"):
+                            st.markdown(r.portrait)
 
                 with cols[1]:
                     st.markdown("**Seeds qui ont mené à cette reco :**")

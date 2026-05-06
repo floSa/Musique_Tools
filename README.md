@@ -1,6 +1,6 @@
 # Musique_Tools
 
-Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe six services autour de Spotify, de la bibliothèque physique personnelle, des sources d'acquisition, et des bandes originales de jeux vidéo.
+Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe sept services autour de Spotify, Qobuz, Last.fm, de la bibliothèque physique personnelle, des sources d'acquisition, et des bandes originales de jeux vidéo.
 
 ---
 
@@ -30,6 +30,9 @@ Musique_Tools/
 │   │   ├── similar_artists.db           # Base SQLite (source de vérité, schéma aligné Last.fm)
 │   │   ├── output_related.csv           # Export CSV (dérivé, généré par export_to_csv.py)
 │   │   └── debug_selection.csv          # Log de sélection des artistes
+│   ├── Artistes_Similaires_Qobuz/
+│   │   ├── similar_artists.db           # Base SQLite (similaires + portrait/bio Qobuz)
+│   │   └── output_related.csv           # Export CSV (dérivé)
 │   └── Musique_Jeux_Video/
 │       └── albums_khinsider.csv         # url + DL (booléen) — source de vérité
 │                                        # Audio téléchargé hors du repo (KHINSIDER_OUTPUT)
@@ -38,6 +41,7 @@ Musique_Tools/
 │   ├── Analyse/                         # Notebooks d'analyse Spotify
 │   ├── Artistes_Similaires_LastFM/      # Artistes similaires via API Last.fm (SQLite)
 │   ├── Artistes_Similaires_Spotify/     # Artistes similaires via scraping Spotify (SQLite)
+│   ├── Artistes_Similaires_Qobuz/       # Artistes similaires + portrait via Qobuz (SQLite)
 │   ├── A_Recuperer/                     # Pipeline de recherche d'albums
 │   │   └── utils/
 │   ├── Musique_Jeux_Video/              # Scraper khinsider — OST de jeux vidéo
@@ -56,6 +60,7 @@ Musique_Tools/
 | **Analyse** | `sources/Analyse/` | Notebooks d'analyse de l'historique et des playlists Spotify |
 | **Artistes_Similaires_LastFM** | `sources/Artistes_Similaires_LastFM/` | Artistes similaires + genres via API Last.fm (score 0–1) |
 | **Artistes_Similaires_Spotify** | `sources/Artistes_Similaires_Spotify/` | Artistes similaires "Fans Also Like" via scraping Spotify (rang) |
+| **Artistes_Similaires_Qobuz** | `sources/Artistes_Similaires_Qobuz/` | Artistes similaires + bio "Portrait" via scraping Qobuz (rang) |
 | **A_Recuperer** | `sources/A_Recuperer/` | Identifie les albums à récupérer et les recherche sur Lyon + Qobuz |
 | **Recommandation** | `sources/Recommandation/` | Interface Streamlit de découverte d'artistes (Last.fm + Spotify) |
 | **Musique_Jeux_Video** | `sources/Musique_Jeux_Video/` | Scraper khinsider.com — bandes originales de jeux vidéo (FLAC/MP3) |
@@ -91,6 +96,12 @@ uv pip install -r requirements.txt
 
 # Artistes_Similaires_Spotify
 cd sources/Artistes_Similaires_Spotify
+uv venv .venv --python 3.12
+uv pip install -r requirements.txt
+uv run playwright install chromium
+
+# Artistes_Similaires_Qobuz
+cd sources/Artistes_Similaires_Qobuz
 uv venv .venv --python 3.12
 uv pip install -r requirements.txt
 uv run playwright install chromium
@@ -164,6 +175,24 @@ cd sources/Artistes_Similaires_Spotify
 uv run python main.py              # Scraper (reprend là où il s'est arrêté)
 HEADLESS=false uv run python main.py  # Mode visible pour débogage
 ```
+
+---
+
+### Service : Artistes_Similaires_Qobuz
+
+Artistes similaires + biographie "Portrait" via scraping `www.qobuz.com`
+(pages publiques, pas besoin de compte). Classés par rang. Le matching nom→artiste
+utilise un fuzzy strict (seuil 0.85) pour éviter les confusions sur les homonymes.
+
+```bash
+cd sources/Artistes_Similaires_Qobuz
+
+uv run python main.py              # Scraper (reprend là où il s'est arrêté)
+HEADLESS=false uv run python main.py  # Mode visible pour débogage
+uv run python export_to_csv.py     # Exporter la DB en CSV (dérivé)
+```
+
+Voir [documentation/Artistes_Similaires_Qobuz.md](documentation/Artistes_Similaires_Qobuz.md).
 
 ---
 
@@ -287,10 +316,15 @@ data/Ressources/artistes_liste.csv
         │           ▼
         │    similar_artists.db → output_related.csv
         │
-        └──► Artistes_Similaires_Spotify (scraping Spotify)
+        ├──► Artistes_Similaires_Spotify (scraping Spotify)
+        │           │
+        │           ▼
+        │    similar_artists.db → output_related.csv (export dérivé)
+        │
+        └──► Artistes_Similaires_Qobuz (scraping www.qobuz.com)
                     │
                     ▼
-             similar_artists.db → output_related.csv (export dérivé)
+             similar_artists.db (similaires + portrait/bio)
 
 
 Albums khinsider (URLs dans albums_khinsider.csv)

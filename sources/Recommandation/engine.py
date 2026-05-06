@@ -87,12 +87,15 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 SPOTIFY_MAX_RANK = 40       # rang max possible chez Spotify "Fans Also Like"
+QOBUZ_MAX_RANK = 50         # côté Qobuz les sections "Artistes similaires" vont de 5 à ~80,
+                            # 50 capture la plupart du signal utile et lisse la queue
 HISTORY_BOOST_CAP_MIN = 60  # plafond du boost historique en minutes
 
 
 def compute_artist_popularity(
     lastfm_similar: dict[str, list[dict]],
     spotify_similar: dict[str, list[dict]],
+    qobuz_similar: dict[str, list[dict]] | None = None,
 ) -> dict[str, int]:
     """Pour chaque artiste, combien de fois il apparaît comme similaire d'un autre.
 
@@ -100,20 +103,16 @@ def compute_artist_popularity(
     (ceux qui ressortent comme similaire de presque tout le monde — Daft Punk,
     Radiohead, etc.) et laisser plus de place aux artistes plus pointus.
 
-    Sources combinées Last.fm + Spotify : un artiste cité 50 fois en Last.fm
-    et 30 fois en Spotify a une popularité de 80.
+    Sources combinées Last.fm + Spotify (+ Qobuz) : un artiste cité 50 fois en
+    Last.fm, 30 fois en Spotify et 20 fois en Qobuz a une popularité de 100.
     """
     pop: dict[str, int] = {}
-    for similars in lastfm_similar.values():
-        for s in similars:
-            name = s.get("name")
-            if name:
-                pop[name] = pop.get(name, 0) + 1
-    for similars in spotify_similar.values():
-        for s in similars:
-            name = s.get("name")
-            if name:
-                pop[name] = pop.get(name, 0) + 1
+    for source in (lastfm_similar, spotify_similar, qobuz_similar or {}):
+        for similars in source.values():
+            for s in similars:
+                name = s.get("name")
+                if name:
+                    pop[name] = pop.get(name, 0) + 1
     return pop
 
 
@@ -145,9 +144,11 @@ class Recommendation:
     citations: int                  # nombre de seeds distincts qui le citent
     lastfm_score: float             # somme pondérée des scores Last.fm
     spotify_score: float            # somme pondérée des scores Spotify
-    in_history: bool                # True si déjà écouté
-    history_minutes: float          # minutes totales écoutées
-    tags: list[str]                 # genres Last.fm
+    qobuz_score: float = 0.0        # somme pondérée des scores Qobuz
+    in_history: bool = False        # True si déjà écouté
+    history_minutes: float = 0.0    # minutes totales écoutées
+    tags: list[str] = field(default_factory=list)
+    portrait: str = ""              # bio Qobuz si disponible
     citing_seeds: list[str] = field(default_factory=list)
 
 
@@ -158,6 +159,18 @@ class Recommendation:
 def normalize_artist(name: str) -> str:
     """Normalisation pour comparaison (insensible à la casse, sans espaces autour)."""
     return name.strip().lower()
+
+
+def qobuz_rank_to_score(rank: int) -> float:
+    """Convertit un rang Qobuz en score 0–1.
+
+    Décroissance linéaire : rang 1 → 1.0, rang QOBUZ_MAX_RANK → 0.02, plus
+    grand → 0. Même logique que `spotify_rank_to_score` mais avec un plafond
+    différent car Qobuz expose plus de similaires que Spotify.
+    """
+    if rank < 1:
+        return 0.0
+    return max(0.0, 1.0 - (rank - 1) / QOBUZ_MAX_RANK)
 
 
 def spotify_rank_to_score(rank: int) -> float:
@@ -374,6 +387,50 @@ def load_spotify_similar(db_path: Path) -> dict[str, list[dict]]:
     return result
 
 
+def load_qobuz_similar(db_path: Path) -> dict[str, list[dict]]:
+    """Retourne {artist: [{name, rank}, ...]} depuis la DB SQLite Qobuz."""
+    if not db_path.exists():
+        return {}
+    conn = sqlite3.connect(str(db_path))
+    cur = conn.execute(
+        "SELECT source_artist, similar_artists FROM artists WHERE status = 'success'"
+    )
+    result: dict[str, list[dict]] = {}
+    for src, sim_json in cur.fetchall():
+        try:
+            related = json.loads(sim_json) if sim_json else []
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(related, list):
+            continue
+        result[src] = [
+            {
+                "name": r["name"],
+                "rank": int(r.get("rank", i + 1)),
+            }
+            for i, r in enumerate(related)
+            if isinstance(r, dict) and "name" in r
+        ]
+    conn.close()
+    return result
+
+
+def load_qobuz_portraits(db_path: Path) -> dict[str, str]:
+    """Retourne {artist: portrait_text} depuis la DB SQLite Qobuz.
+
+    Utile pour afficher la bio dans l'UI en complément du score.
+    """
+    if not db_path.exists():
+        return {}
+    conn = sqlite3.connect(str(db_path))
+    cur = conn.execute(
+        "SELECT source_artist, portrait FROM artists WHERE status = 'success'"
+    )
+    result = {row[0]: (row[1] or "") for row in cur.fetchall() if row[1]}
+    conn.close()
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Cœur du moteur
 # ---------------------------------------------------------------------------
@@ -382,6 +439,7 @@ def _new_candidate_entry() -> dict:
     return {
         'lastfm_total': 0.0,
         'spotify_total': 0.0,
+        'qobuz_total': 0.0,
         'citing_seeds': set(),
     }
 
@@ -478,6 +536,9 @@ def recommend(
     genre_filter_mode: str = "OR",
     tag_sim_index: dict[str, dict[str, float]] | None = None,
     genre_expansion_threshold: float = 1.0,
+    qobuz_similar: dict[str, list[dict]] | None = None,
+    qobuz_weight: float = 0.0,
+    qobuz_portraits: dict[str, str] | None = None,
 ) -> list[Recommendation]:
     """Calcule le top N des recommandations.
 
@@ -488,7 +549,12 @@ def recommend(
         lastfm_tags : sortie de `load_lastfm_tags`
         excluded : artistes à exclure (biblio + playlists + dislikes)
         history_minutes_map : {artist: minutes totales} pour le boost
-        lastfm_weight : α ∈ [0,1] — pondération Last.fm vs Spotify dans le score final
+        lastfm_weight, qobuz_weight : pondérations relatives des trois sources.
+            La pondération Spotify est déduite : `1 - lastfm_weight - qobuz_weight`
+            (clampée ≥ 0). Trois cas de figure typiques :
+            - Last.fm + Spotify uniquement (Qobuz pas scrapé) → qobuz_weight=0
+            - Trois sources équilibrées → 0.33/0.33 (spotify_w = 0.34)
+            - 100 % Qobuz pour expérimenter → qobuz_weight=1, lastfm_weight=0
         history_boost : γ ∈ [0,1] — force du boost pour les artistes déjà écoutés
         genre_filter : liste de genres ; un candidat passe s'il a au moins un de ces tags
         n_results : nombre de recommandations à retourner
@@ -506,21 +572,32 @@ def recommend(
         genre_expansion_threshold : ∈ [0, 1] — seuil de proximité pour étendre
             le filtre genre. 1.0 = filtre strict (défaut), 0.3 = inclut les
             tags voisins proches (techno → minimal techno, etc.).
+        qobuz_similar : sortie de `load_qobuz_similar`. Optionnel — si absent,
+            la 3e source ne contribue pas (compat des appels existants).
+        qobuz_portraits : sortie de `load_qobuz_portraits` ; transmis sur les
+            recommandations finales pour affichage UI.
 
     Returns:
         Liste de `Recommendation` triée par MMR si diversification, sinon par score.
         Tronquée à n_results.
     """
+    qobuz_similar = qobuz_similar or {}
+    qobuz_portraits = qobuz_portraits or {}
+
+    # Normalisation des trois poids ; on déduit spotify_weight
+    spotify_weight = max(0.0, 1.0 - lastfm_weight - qobuz_weight)
+
     t0 = time.time()
     seeds_with_data = sum(
         1 for s in seeds
-        if s in lastfm_similar or s in spotify_similar
+        if s in lastfm_similar or s in spotify_similar or s in qobuz_similar
     )
     logger.info(
         "recommend(): %d seeds reçus (%d avec données de similarité), "
-        "α=%.2f γ=%.2f λ=%.2f ω=%.2f, n=%d, genre=%s/%s",
+        "α_lfm=%.2f α_spt=%.2f α_qbz=%.2f γ=%.2f λ=%.2f ω=%.2f, n=%d, genre=%s/%s",
         len(seeds), seeds_with_data,
-        lastfm_weight, history_boost, diversity_weight, popularity_penalty,
+        lastfm_weight, spotify_weight, qobuz_weight,
+        history_boost, diversity_weight, popularity_penalty,
         n_results, genre_filter or [], genre_filter_mode,
     )
 
@@ -540,6 +617,12 @@ def recommend(
             name = sim['name']
             entry = candidates.setdefault(name, _new_candidate_entry())
             entry['spotify_total'] += seed_weight * spotify_rank_to_score(sim['rank'])
+            seen_in_seed.add(name)
+
+        for sim in qobuz_similar.get(seed, []):
+            name = sim['name']
+            entry = candidates.setdefault(name, _new_candidate_entry())
+            entry['qobuz_total'] += seed_weight * qobuz_rank_to_score(sim['rank'])
             seen_in_seed.add(name)
 
         for name in seen_in_seed:
@@ -578,7 +661,8 @@ def recommend(
     for artist, agg in candidates.items():
         base_score = (
             lastfm_weight * agg['lastfm_total']
-            + (1 - lastfm_weight) * agg['spotify_total']
+            + spotify_weight * agg['spotify_total']
+            + qobuz_weight * agg['qobuz_total']
         ) / seeds_weight_sum
 
         # Pénalité de popularité (#4) : dampe les artistes "génériques"
@@ -610,9 +694,11 @@ def recommend(
             citations=len(agg['citing_seeds']),
             lastfm_score=agg['lastfm_total'],
             spotify_score=agg['spotify_total'],
+            qobuz_score=agg['qobuz_total'],
             in_history=hist_min > 0,
             history_minutes=hist_min,
             tags=tags,
+            portrait=qobuz_portraits.get(artist, ""),
             citing_seeds=sorted(agg['citing_seeds']),
         ))
 
