@@ -30,7 +30,11 @@ JEUX_ARTIST    = "BO Jeux"
 # ---------------------------------------------------------------------------
 
 def scan_artist_album_root(path: str | Path) -> list[dict]:
-    """Structure path/Artiste/Album/ — utilisée pour __Autres."""
+    """Structure path/Artiste/Album/ — utilisée pour __Autres.
+
+    Chaque entrée est `{Artist, Album, Path}` où `Path` est le chemin absolu
+    du dossier album (utile pour ouvrir le dossier depuis le fichier final).
+    """
     library_path = Path(path)
     if not library_path.exists():
         print(f"Bibliothèque non trouvée : {library_path}")
@@ -42,7 +46,11 @@ def scan_artist_album_root(path: str | Path) -> list[dict]:
             continue
         for album_path in artiste_path.iterdir():
             if album_path.is_dir():
-                donnees.append({"Artist": artiste_path.name, "Album": album_path.name})
+                donnees.append({
+                    "Artist": artiste_path.name,
+                    "Album":  album_path.name,
+                    "Path":   str(album_path),
+                })
     return donnees
 
 
@@ -70,7 +78,7 @@ def scan_bo_root(path: str | Path) -> list[dict]:
         if not album or not artist:
             print(f"  [BO] Ignoré (vide après split) : {name!r}")
             continue
-        donnees.append({"Artist": artist, "Album": album})
+        donnees.append({"Artist": artist, "Album": album, "Path": str(entry)})
     return donnees
 
 
@@ -84,7 +92,11 @@ def scan_album_only_root(path: str | Path, fixed_artist: str) -> list[dict]:
     donnees = []
     for entry in library_path.iterdir():
         if entry.is_dir():
-            donnees.append({"Artist": fixed_artist, "Album": entry.name})
+            donnees.append({
+                "Artist": fixed_artist,
+                "Album":  entry.name,
+                "Path":   str(entry),
+            })
     return donnees
 
 
@@ -101,7 +113,7 @@ def scan_library(
     Pour scanner les 4 racines, utiliser `scan_all_libraries`.
     """
     donnees = scan_artist_album_root(path)
-    df = pd.DataFrame(donnees, columns=["Artist", "Album"])
+    df = pd.DataFrame(donnees, columns=["Artist", "Album", "Path"])
     if not df.empty:
         df = df.sort_values(by=["Artist", "Album"]).reset_index(drop=True)
 
@@ -137,7 +149,7 @@ def scan_all_libraries(
     rows += scan_album_only_root(compils, COMPILS_ARTIST)
     rows += scan_album_only_root(jeux,    JEUX_ARTIST)
 
-    df = pd.DataFrame(rows, columns=["Artist", "Album"])
+    df = pd.DataFrame(rows, columns=["Artist", "Album", "Path"])
     if not df.empty:
         df = (
             df.drop_duplicates(subset=["Artist", "Album"])
@@ -146,8 +158,17 @@ def scan_all_libraries(
         )
 
     if output_path:
-        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output_path, index=False)
-        print(f"Bibliothèque sauvegardée : {output_path} ({len(df)} albums)")
+        # En plus du CSV, on génère systématiquement un Excel à côté pour
+        # consultation directe (même nom de base, extension .xlsx).
+        xlsx_path = output_path.with_suffix(".xlsx")
+        try:
+            df.to_excel(xlsx_path, index=False)
+            print(f"Bibliothèque sauvegardée : {output_path} + {xlsx_path.name} ({len(df)} albums)")
+        except Exception as e:
+            print(f"Bibliothèque sauvegardée : {output_path} ({len(df)} albums)")
+            print(f"  (xlsx non généré : {e})")
 
     return df

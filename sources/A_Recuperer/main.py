@@ -172,6 +172,23 @@ def cmd_match(playlist: str | None = None):
         'Album_Biblio':    'Album_Possede',
     })
     match_complet = match_complet.drop_duplicates(subset=['Artist_A_rechercher', 'Album_A_rechercher'])
+
+    # Propager le chemin physique de l'album possédé (colonne Path) si la
+    # biblio scannée le fournit. Permet, dans le fichier final, d'ouvrir
+    # directement le dossier de l'album possédé pour comparaison.
+    if 'Path' in df_biblio.columns:
+        match_complet = match_complet.merge(
+            df_biblio.rename(columns={
+                'Artist': 'Artist_Possede',
+                'Album':  'Album_Possede',
+                'Path':   'Path_Possede',
+            })[['Artist_Possede', 'Album_Possede', 'Path_Possede']],
+            on=['Artist_Possede', 'Album_Possede'],
+            how='left',
+        )
+    else:
+        match_complet['Path_Possede'] = ''
+
     match_complet.to_csv(out_match_complet, index=False)
     print(f"Données de matching complètes → {out_match_complet}")
 
@@ -212,16 +229,29 @@ def cmd_consolidate(playlist: str | None = None):
     df['Sources'] = df.apply(build_sources, axis=1)
     df['Reference'] = df['Cote'].where(df['Cote'].notna() & (df['Cote'].astype(str) != 'nan'), '')
 
-    final = df[[
+    # Inclure Path_Possede s'il a été propagé par cmd_match (chemin physique
+    # de l'album possédé le plus proche, utile quand Artist_sim est haut)
+    cols = [
         'Sources', 'Reference',
         'Artist_A_rechercher', 'Artist_Possede', 'Artist_sim',
         'Album_A_rechercher',  'Album_Possede',  'Album_sim',
         'Liste_albums_pos',
-    ]]
+    ]
+    if 'Path_Possede' in df.columns:
+        cols.insert(2, 'Path_Possede')  # juste après Reference
+
+    final = df[cols]
 
     out_final.parent.mkdir(parents=True, exist_ok=True)
     final.to_csv(out_final, index=False)
-    print(f"{len(final)} lignes → {out_final}")
+    # Excel à côté pour consultation directe
+    xlsx_path = out_final.with_suffix('.xlsx')
+    try:
+        final.to_excel(xlsx_path, index=False)
+        print(f"{len(final)} lignes → {out_final} + {xlsx_path.name}")
+    except Exception as e:
+        print(f"{len(final)} lignes → {out_final}")
+        print(f"  (xlsx non généré : {e})")
 
 
 def cmd_search(playlist: str | None = None):

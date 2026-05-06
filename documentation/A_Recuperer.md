@@ -407,18 +407,19 @@ Toutes les fonctions de `utils/` sont importées directement dans le notebook.
 
 | Fichier | Généré par | Contenu |
 |---|---|---|
-| `data/Bibliotheque/bibliotheque.csv` | `--scan-library` | Scan de `M:\musiques\__Autres` → `{Artist, Album}` |
+| `data/Bibliotheque/bibliotheque.csv` + `.xlsx` | `--scan-library` | Scan des 4 racines → `{Artist, Album, Path}` (CSV + Excel à côté) |
 | `data/Ressources/albums_a_rechercher.csv` | `--match` | Albums non possédés à scraper : `{Artist, Album}` |
-| `data/Ressources/albums_match_complet.csv` | `--match` | Idem + scores fuzzy et meilleure correspondance bibliothèque |
+| `data/Ressources/albums_match_complet.csv` | `--match` | Idem + scores fuzzy + `Path_Possede` (chemin physique de l'album le plus proche, vide si Artist_sim<90) |
 | `data/Ressources/resultats_cotes.csv` | `--search` | Résultats BM Lyon + Qobuz bruts |
-| `data/Resultats/resultats_final.csv` | `--consolidate` | Jeu de données final consolidé (voir colonnes ci-dessous) |
+| `data/Resultats/resultats_final.csv` + `.xlsx` | `--consolidate` | Jeu de données final consolidé (CSV + Excel à côté, voir colonnes ci-dessous) |
 
-### Colonnes de `resultats_final.csv`
+### Colonnes de `resultats_final.csv` / `.xlsx`
 
 | Colonne | Description |
 |---|---|
 | `Sources` | Qobuz URL et/ou cote BM Lyon + disponibilité, séparés par ` \| ` |
 | `Reference` | Cote BM Lyon seule (pour localiser le CD en rayon) |
+| `Path_Possede` | Chemin physique de l'album possédé (`M:\musiques\…\Artiste\Album`) si Artist_sim≥90, vide sinon |
 | `Artist_A_rechercher` | Artiste tel qu'il apparaît dans la playlist |
 | `Artist_Possede` | Meilleur artiste correspondant trouvé en bibliothèque |
 | `Artist_sim` | Score de similarité artiste (0–100) |
