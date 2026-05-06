@@ -287,7 +287,7 @@ Accessible depuis WSL via `/mnt/m/musiques/`. Le scan combine **4 racines** avec
 | Racine | Structure | Mapping |
 |---|---|---|
 | `__Autres`  | `Artiste/Album/`       | tel quel |
-| `__B.O`     | `"Album - Artiste"/`   | split au dernier `-`, strip |
+| `__B.O`     | `"Album - Artiste"/` ou autre | split au dernier `-` si présent ; sinon `Artist="BO"`, `Album=nom_dossier` |
 | `__COMPILS` | `Album/`               | Artist forcé à `"Various Artists"` |
 | `__JEUX`    | `Album/`               | Artist forcé à `"BO Jeux"` |
 

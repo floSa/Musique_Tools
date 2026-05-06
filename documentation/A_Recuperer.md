@@ -89,21 +89,37 @@ Source 1 : df_playlists
   │    → suppression de "Deluxe", "Radio Edit", "EP"
   │    → split sur la virgule (prend le premier artiste)
   │
-Source 2 : df_biblio
+Source 2 : df_biblio = bibliotheque.csv ∪ Albums_musique_AAAA_MM.xlsx (le plus récent)
+  │  ⚠ le xlsx est tenu à la main et liste les albums "considérés possédés"
+  │    plus largement que le scan disque (acquisitions hors filesystem,
+  │    fichiers vrac sans dossier album, etc.). 858 entrées additionnelles
+  │    en pratique (mai 2026).
   │  même normalisation appliquée
   │
   ▼
 match_albums_with_fuzz()   (rapidfuzz · token_sort_ratio)
+    fuzzy scoring SUR les colonnes Artist_clean/Album_clean
+    (préserve les noms bruts en sortie pour le scraper et l'affichage)
     seuil artiste : 90
     seuil album   : 80
   │
   ├── Album_sim ≥ 80         → déjà possédé en bibliothèque, ignoré
   │
   ├── dans df_recherches     → déjà scrappé (Source 3), ignoré
-  │   (jointure sur Artist + Album)
+  │   (jointure normalisée via clean_artist/clean_albums des 2 côtés —
+  │    le xlsx étant tenu à la main avec des noms déjà cleaned)
   │
   └── reste → data/Ressources/albums_a_rechercher.csv
 ```
+
+**Mesure indicative sur la playlist Partage** (avril 2026, biblio ~11k albums) :
+
+| Étape | Albums restants |
+|---|---|
+| Avant filtrage | 3 136 |
+| Après matching biblio (fuzzy ≥80) | ~2 400 |
+| Après élargissement via Albums_musique_2026_05.xlsx | ~614 |
+| Après filtre `recherches_effectuees.xlsx` | **40** |
 
 ---
 
@@ -277,13 +293,13 @@ La bibliothèque est répartie sur 4 racines avec des conventions distinctes :
 | Racine Windows | Convention dossier | Mapping `(Artist, Album)` |
 |---|---|---|
 | `M:\musiques\__Autres`  | `Artiste/Album/`        | tel quel |
-| `M:\musiques\__B.O`     | `"Album - Artiste"/`    | split au **dernier** `-` puis `strip()` |
+| `M:\musiques\__B.O`     | `"Album - Artiste"/` ou autre | split au **dernier** `-` si présent ; sinon `Artist="BO"`, `Album=nom_dossier` |
 | `M:\musiques\__COMPILS` | `Album/`                | Artist = `"Various Artists"` |
 | `M:\musiques\__JEUX`    | `Album/`                | Artist = `"BO Jeux"` |
 
-Exemple `__B.O` : le dossier `1989-2024 - John Williams` est splitté au
-dernier `-` → `Album="1989-2024"`, `Artist="John Williams"`. Les dossiers
-sans `-` sont ignorés avec un warning.
+Exemple `__B.O` :
+- `1989-2024 - John Williams` → split au dernier `-` → `Album="1989-2024"`, `Artist="John Williams"`
+- `Disney Best OF` (pas de `-`) → `Artist="BO"`, `Album="Disney Best OF"` (cohérent avec `__JEUX`)
 
 Accessible depuis WSL via `/mnt/m/musiques/...`.
 

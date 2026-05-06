@@ -57,7 +57,9 @@ def scan_artist_album_root(path: str | Path) -> list[dict]:
 def scan_bo_root(path: str | Path) -> list[dict]:
     """Structure path/"Album - Artiste"/ — split au DERNIER '-' puis strip.
 
-    Les dossiers sans '-' sont ignorés avec un warning.
+    Les dossiers sans '-' (Artiste seul, OST série, compilation thématique
+    type "Disney Best OF") sont quand même indexés avec `Artist="BO"` et
+    `Album=nom_dossier` — sinon ils ne seraient pas matchés du tout.
     """
     library_path = Path(path)
     if not library_path.exists():
@@ -69,16 +71,16 @@ def scan_bo_root(path: str | Path) -> list[dict]:
         if not entry.is_dir():
             continue
         name = entry.name
-        if "-" not in name:
-            print(f"  [BO] Ignoré (pas de '-') : {name!r}")
-            continue
-        album_part, _, artist_part = name.rpartition("-")
-        album = album_part.strip()
-        artist = artist_part.strip()
-        if not album or not artist:
-            print(f"  [BO] Ignoré (vide après split) : {name!r}")
-            continue
-        donnees.append({"Artist": artist, "Album": album, "Path": str(entry)})
+        if "-" in name:
+            album_part, _, artist_part = name.rpartition("-")
+            album = album_part.strip()
+            artist = artist_part.strip()
+            if album and artist:
+                donnees.append({"Artist": artist, "Album": album, "Path": str(entry)})
+                continue
+            # Si vide après split → fallback comme "sans tiret"
+        # Sans tiret (ou vide après split) : on garde quand même l'entrée
+        donnees.append({"Artist": "BO", "Album": name, "Path": str(entry)})
     return donnees
 
 
