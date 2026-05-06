@@ -147,11 +147,21 @@ def cmd_match(playlist: str | None = None):
         'Album_Playlist': 'Album',
     })[['Artist', 'Album']]
 
-    # Remove already researched
+    # Remove already researched.
+    # Le fichier recherches_effectuees.xlsx est tenu à la main avec des noms
+    # déjà normalisés (minuscules, sans accents, sans parenthèses). Les noms
+    # côté playlist sont bruts. On compare les deux côtés via clean_* pour
+    # éviter les faux négatifs (ex: "Lost in Paradise" vs "lost in paradise").
     if not df_recherches.empty:
-        already_done = set(zip(df_recherches['Artist'], df_recherches['Album']))
+        already_done = set(zip(
+            df_recherches['Artist'].astype(str).map(clean_artist),
+            df_recherches['Album'].astype(str).map(clean_albums),
+        ))
         not_in_biblio = not_in_biblio[
-            ~not_in_biblio.apply(lambda r: (r['Artist'], r['Album']) in already_done, axis=1)
+            ~not_in_biblio.apply(
+                lambda r: (clean_artist(str(r['Artist'])), clean_albums(str(r['Album']))) in already_done,
+                axis=1,
+            )
         ]
 
     not_in_biblio = not_in_biblio.drop_duplicates().sort_values(['Artist', 'Album'])
@@ -172,6 +182,21 @@ def cmd_match(playlist: str | None = None):
         'Album_Biblio':    'Album_Possede',
     })
     match_complet = match_complet.drop_duplicates(subset=['Artist_A_rechercher', 'Album_A_rechercher'])
+
+    # Cohérence : exclure aussi les albums déjà recherchés (mêmes critères
+    # que not_in_biblio) pour que match_complet ↔ albums_a_rechercher restent
+    # alignés (sinon le merge dans cmd_consolidate produit des lignes orphelines).
+    if not df_recherches.empty:
+        already_done = set(zip(
+            df_recherches['Artist'].astype(str).map(clean_artist),
+            df_recherches['Album'].astype(str).map(clean_albums),
+        ))
+        match_complet = match_complet[
+            ~match_complet.apply(
+                lambda r: (clean_artist(str(r['Artist_A_rechercher'])), clean_albums(str(r['Album_A_rechercher']))) in already_done,
+                axis=1,
+            )
+        ]
 
     # Propager le chemin physique de l'album possédé (colonne Path) si la
     # biblio scannée le fournit. Permet, dans le fichier final, d'ouvrir
