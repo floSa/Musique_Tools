@@ -27,7 +27,8 @@ sources/A_Recuperer/
 ├── A_Recuperer.ipynb     # Notebook interactif (même logique)
 ├── requirements.txt
 └── utils/
-    ├── matching.py       # Nettoyage et fuzzy matching artiste/album
+    ├── matching.py       # Fuzzy matching playlist↔bibliothèque (rapidfuzz)
+    ├── text_match.py     # Matching strict scraper : SequenceMatcher + parsing ISBD
     ├── library.py        # Scan de la bibliothèque physique
     ├── data_loader.py    # Chargement playlists + recherches_effectuees
     └── scraper.py        # Scraper BM Lyon + Qobuz (Playwright)
@@ -39,9 +40,17 @@ sources/A_Recuperer/
 
 ### Étape 1 — Scan de la bibliothèque (`--scan-library`)
 
-`scan_library()` parcourt `M:\musiques\__Autres` (accessible via `/mnt/m/musiques/__Autres` sous WSL) et produit un DataFrame `{Artist, Album}` sauvegardé dans `data/Bibliotheque/bibliotheque.csv`.
+`scan_all_libraries()` parcourt **4 racines** avec des conventions de nommage
+différentes (cf. `utils/library.py`) :
 
-À relancer uniquement quand la bibliothèque physique a changé (nouveaux albums rippés ou achetés).
+- `M:\musiques\__Autres`  — `Artiste/Album/` (cas standard)
+- `M:\musiques\__B.O`     — `"Album - Artiste"/` (split au dernier `-`)
+- `M:\musiques\__COMPILS` — `Album/` → Artist forcé à `"Various Artists"`
+- `M:\musiques\__JEUX`    — `Album/` → Artist forcé à `"BO Jeux"`
+
+Le résultat fusionné est dédoublonné et sauvegardé dans
+`data/Bibliotheque/bibliotheque.csv`. À relancer uniquement quand la
+bibliothèque physique a changé.
 
 ---
 
@@ -143,6 +152,39 @@ uv run python main.py --consolidate   # Génère data/Resultats/resultats_final.
 - `--search` : pour scraper les albums déjà identifiés sans relancer tout le matching
 - `--consolidate` : pour regénérer le fichier final sans relancer le scraping
 
+### Restreindre à une seule playlist (`PLAYLIST_FILTER`)
+
+Par défaut, `--match` charge **toutes** les playlists de `data/Playlists_Spotify/`
+et les concatène. Pour ne traiter qu'**une seule** playlist (ex: chercher
+uniquement ce qu'il manque dans `Partage`), définir la variable d'environnement
+`PLAYLIST_FILTER` avec le nom du fichier (sans extension) :
+
+```bash
+# Tout le pipeline restreint à la playlist Partage
+PLAYLIST_FILTER=Partage uv run python main.py --match
+PLAYLIST_FILTER=Partage uv run python main.py --search
+PLAYLIST_FILTER=Partage uv run python main.py --consolidate
+
+# Run global par défaut (toutes les playlists)
+uv run python main.py --match
+```
+
+Les fichiers générés sont alors **suffixés** avec le nom de la playlist
+pour ne pas écraser le run global :
+
+| Fichier global | Avec `PLAYLIST_FILTER=Partage` |
+|---|---|
+| `albums_a_rechercher.csv`  | `albums_a_rechercher_Partage.csv` |
+| `albums_match_complet.csv` | `albums_match_complet_Partage.csv` |
+| `resultats_cotes.csv`      | `resultats_cotes_Partage.csv` |
+| `resultats_final.csv`      | `resultats_final_Partage.csv` |
+
+Si le nom passé n'existe pas dans le dossier des playlists, le script
+affiche la liste des playlists disponibles et s'arrête sans rien écrire.
+La variable doit être définie pour **chaque** invocation de la pipeline
+(`--match`, `--search`, `--consolidate`) — sinon les paths ne correspondent
+plus.
+
 `uv run` utilise automatiquement le venv `.venv/` présent dans le répertoire courant. Pas besoin d'activer manuellement.
 
 ---
@@ -224,20 +266,30 @@ df_a_recuperer = df_match[df_match['Album_sim'] < 80]
 
 | Fonction | Signature | Description |
 |---|---|---|
-| `scan_library(path, output_path)` | `str, str|None → DataFrame` | Parcourt `path/Artiste/Album/` et retourne un DataFrame `{Artist, Album}` |
+| `scan_library(path, output_path)` | `str, str|None → DataFrame` | Parcourt `path/Artiste/Album/` (compat historique, racine `__Autres` uniquement) |
+| `scan_all_libraries(autres, bo, compils, jeux, output_path)` | tous optionnels → `DataFrame` | Scanne les 4 racines avec leurs règles spécifiques et fusionne |
+| `scan_artist_album_root(path)` | `str → list[dict]` | Stratégie `Artiste/Album/` |
+| `scan_bo_root(path)` | `str → list[dict]` | Stratégie `"Album - Artiste"/` (split au dernier `-`) |
+| `scan_album_only_root(path, fixed_artist)` | `str, str → list[dict]` | Stratégie `Album/` avec artiste forcé |
 
-La bibliothèque est organisée ainsi sous Windows :
-```
-M:\musiques\__Autres\
-    Air\
-        Moon Safari\
-        Talkie Walkie\
-    Aphex Twin\
-        Selected Ambient Works\
-        ...
-```
+La bibliothèque est répartie sur 4 racines avec des conventions distinctes :
 
-Accessible depuis WSL via `/mnt/m/musiques/__Autres`.
+| Racine Windows | Convention dossier | Mapping `(Artist, Album)` |
+|---|---|---|
+| `M:\musiques\__Autres`  | `Artiste/Album/`        | tel quel |
+| `M:\musiques\__B.O`     | `"Album - Artiste"/`    | split au **dernier** `-` puis `strip()` |
+| `M:\musiques\__COMPILS` | `Album/`                | Artist = `"Various Artists"` |
+| `M:\musiques\__JEUX`    | `Album/`                | Artist = `"BO Jeux"` |
+
+Exemple `__B.O` : le dossier `1989-2024 - John Williams` est splitté au
+dernier `-` → `Album="1989-2024"`, `Artist="John Williams"`. Les dossiers
+sans `-` sont ignorés avec un warning.
+
+Accessible depuis WSL via `/mnt/m/musiques/...`.
+
+Les 4 chemins sont configurables via variables d'environnement :
+`LIBRARY_PATH` (défaut `__Autres`), `LIBRARY_BO_PATH`, `LIBRARY_COMPILS_PATH`,
+`LIBRARY_JEUX_PATH`.
 
 > **Le lecteur M: doit être monté dans WSL avant de lancer `--scan-library`.**
 > WSL n'auto-monte pas les lecteurs connectés après son démarrage (lecteurs réseau, externes, etc.).
@@ -281,13 +333,43 @@ Scraper basé sur **Playwright** (navigateur headless Chromium, locale `fr-FR`).
 
 **Stratégie BM Lyon :**
 1. Recherche `{Artiste} {Album} Disque compact` sur `catalogue.bm-lyon.fr`
-2. Pour chaque résultat, vérifie la présence de l'artiste sur la page de détail
-3. Si `Part-Dieu` trouvé : extrait la cote et la disponibilité
-4. Reprend là où il s'est arrêté si le fichier de sortie existe déjà
+2. Récolte de **tous les liens** de résultat contenant "Disque compact"
+3. **Scoring strict** de chaque candidat : on parse le format ISBD
+   `Titre / Auteur. - Disque compact - Année` et on calcule
+   `score = 0.55·sim(album, titre) + 0.45·sim(artiste, auteur)`
+4. Top-K (5) candidats triés par score → on clique dans l'ordre, on extrait
+   la cote Part-Dieu sur le premier qui passe la double vérification artiste
+5. Reprend là où il s'est arrêté si le fichier de sortie existe déjà
 
 **Stratégie Qobuz :**
-1. Priorité : artiste → page artiste → parcours de la discographie (jusqu'à 50 titres)
-2. Fallback : recherche directe `{Artiste} {Album}`
+1. Priorité : recherche artiste → on score **tous** les candidats (vs `.first`),
+   match strict ≥ 0.85 sur le nom (`SequenceMatcher`) → page artiste →
+   parcours discographie (≤ 50 titres) → meilleur titre album ≥ 0.55
+2. Fallback : recherche directe `{Artiste} {Album}` → on score tous les
+   `div.album-item` et on garde le meilleur si `sim_artiste ≥ 0.85`
+
+### Matching strict (`utils/text_match.py`)
+
+Aligné sur le service Artistes_Similaires_Qobuz pour éviter les faux positifs
+(coquille historique : "Worakls" matchait "Kevin Worakls", "Air" matchait
+"Air Supply"). Helpers communs :
+
+| Fonction | Rôle |
+|---|---|
+| `normalize(s)` | NFKD + ASCII + lowercase + whitespace compressé |
+| `name_similarity(a, b)` | `SequenceMatcher.ratio()` (1.0 si égalité après normalisation) |
+| `parse_bm_lyon_title(text)` | Parse le format ISBD → `{title, author, raw}` |
+| `score_bm_lyon_candidate(text, artist, album)` | Score combiné album+auteur ∈ [0, 1] |
+
+Seuils : `ARTIST_MATCH_THRESHOLD = 0.85`, `BM_CANDIDATE_THRESHOLD = 0.55`,
+`QOBUZ_ALBUM_THRESHOLD = 0.55`.
+
+### Debug log (`debug_selection.csv`)
+
+Le scraper écrit à côté de `resultats_cotes.csv` un journal de chaque
+sélection pour audit a posteriori. Colonnes : `Timestamp, Source,
+Artist_input, Album_input, Selected_text, Score, URL, Status`. Permet de
+détecter rapidement les faux positifs/négatifs sans relancer Playwright.
 
 **Colonnes de sortie (`resultats_cotes.csv`) :**
 
