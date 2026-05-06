@@ -4,10 +4,12 @@ Scraper Spotify "Fans Also Like" — artistes similaires via Spotify web.
 Usage:
     uv run python main.py
 
-Reprend automatiquement là où il s'est arrêté (lit output_related.csv au démarrage).
+Stockage : SQLite (`data/Artistes_Similaires_Spotify/similar_artists.db`),
+schéma aligné sur le service Last.fm (cf. `database.py`).
+
+Reprend automatiquement là où il s'est arrêté (lit la DB au démarrage).
 """
 import gc
-import json
 import os
 import random
 import re
@@ -19,13 +21,14 @@ from pathlib import Path
 import pandas as pd
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+from database import Database
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 
 DATA_DIR    = Path(__file__).parent.parent.parent / "data" / "Artistes_Similaires_Spotify"
 INPUT_FILE  = Path(__file__).parent.parent.parent / "data" / "Ressources" / "artistes_liste.csv"
-OUTPUT_FILE = DATA_DIR / "output_related.csv"
 DEBUG_FILE  = DATA_DIR / "debug_selection.csv"
 
 HEADLESS = os.environ.get("HEADLESS", "true").lower() == "true"
@@ -263,16 +266,10 @@ def get_related_artists(page, target_artist: str):
 def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Resume: load already processed artists
-    processed = set()
-    if OUTPUT_FILE.exists():
-        try:
-            df_existing = pd.read_csv(OUTPUT_FILE)
-            if "Source_Artist" in df_existing.columns:
-                processed = set(df_existing["Source_Artist"].unique())
-            print(f"Resuming: {len(processed)} artists already processed.")
-        except Exception as e:
-            print(f"Could not read existing output ({e}). Starting fresh.")
+    # Resume: charge depuis la DB SQLite
+    db = Database()
+    processed = db.get_processed_artists()
+    print(f"Resuming: {len(processed)} artists already processed.")
 
     if not INPUT_FILE.exists():
         print(f"CRITICAL: input file not found: {INPUT_FILE}")
@@ -285,6 +282,7 @@ def main():
     print(f"Total: {len(all_artists)} | Remaining: {len(remaining)}")
     if not remaining:
         print("All artists already processed.")
+        db.close()
         return
 
     with sync_playwright() as p:
@@ -315,21 +313,15 @@ def main():
                         source_id, data = get_related_artists(page, artist)
 
                         if data and source_id:
-                            formatted = [{"name": r["Name"], "id": r["ID"]} for r in data]
-                            row = pd.DataFrame([{
-                                "Source_Artist":    artist,
-                                "Source_Artist_ID": source_id,
-                                "Related_Data_Raw": str(formatted),
-                            }])
+                            similar = [
+                                {"name": r["Name"], "id": r["ID"], "rank": i}
+                                for i, r in enumerate(data, 1)
+                            ]
+                            db.save_result(artist, source_id, similar)
                         else:
-                            row = pd.DataFrame([{
-                                "Source_Artist":    artist,
-                                "Source_Artist_ID": "",
-                                "Related_Data_Raw": "[]",
-                            }])
+                            # On enregistre quand même pour ne pas re-tenter en boucle
+                            db.save_result(artist, "", [])
 
-                        header = not OUTPUT_FILE.exists()
-                        row.to_csv(OUTPUT_FILE, mode="a", header=header, index=False)
                         processed.add(artist)
                         session_count += 1
 
@@ -365,7 +357,8 @@ def main():
                     pass
                 wait_for_internet()
 
-    print(f"\nDone. Results in {OUTPUT_FILE}")
+    db.close()
+    print(f"\nDone. Results in {DATA_DIR / 'similar_artists.db'}")
 
 
 if __name__ == "__main__":

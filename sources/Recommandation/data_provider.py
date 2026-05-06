@@ -51,7 +51,7 @@ def get_lastfm_tags() -> dict[str, list[str]]:
 @st.cache_data
 def get_spotify_similar() -> dict[str, list[dict]]:
     return load_spotify_similar(
-        DATA / "Artistes_Similaires_Spotify" / "output_related.csv"
+        DATA / "Artistes_Similaires_Spotify" / "similar_artists.db"
     )
 
 
@@ -75,7 +75,7 @@ def get_artist_popularity() -> dict[str, int]:
 def get_spotify_id_index() -> dict[str, str]:
     """Index nom_artiste → spotify_id, pour le player embed."""
     return load_spotify_id_index(
-        DATA / "Artistes_Similaires_Spotify" / "output_related.csv"
+        DATA / "Artistes_Similaires_Spotify" / "similar_artists.db"
     )
 
 

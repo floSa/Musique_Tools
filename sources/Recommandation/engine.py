@@ -72,7 +72,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, timedelta
-import ast
 import json
 import logging
 import sqlite3
@@ -302,73 +301,76 @@ def load_lastfm_tags(db_path: Path) -> dict[str, list[str]]:
     return result
 
 
-def load_spotify_id_index(csv_path: Path) -> dict[str, str]:
-    """Construit un index `{nom_artiste: spotify_id}` à partir du CSV Spotify.
+def load_spotify_id_index(db_path: Path) -> dict[str, str]:
+    """Construit un index `{nom_artiste: spotify_id}` depuis la DB Spotify.
 
     Utilise :
-    - `Source_Artist` + `Source_Artist_ID` (artistes scrapés directement)
-    - Les `{name, id}` à l'intérieur de `Related_Data_Raw`
+    - `source_artist` + `source_artist_id` (artistes scrapés directement)
+    - Les `{name, id}` à l'intérieur de `similar_artists` (qui apportent
+      souvent des artistes non scrapés)
 
     En cas de doublons (peu probable car les IDs Spotify sont uniques par artiste),
     la première occurrence rencontrée est conservée.
     """
-    if not csv_path.exists():
+    if not db_path.exists():
         return {}
-    df = pd.read_csv(csv_path)
+    conn = sqlite3.connect(str(db_path))
+    cur = conn.execute(
+        "SELECT source_artist, source_artist_id, similar_artists FROM artists "
+        "WHERE status = 'success'"
+    )
     index: dict[str, str] = {}
+    for source_artist, source_id, sim_json in cur.fetchall():
+        # Source direct
+        if (
+            isinstance(source_artist, str)
+            and isinstance(source_id, str)
+            and len(source_id) == 22
+        ):
+            index.setdefault(source_artist, source_id)
 
-    # Sources directs
-    if "Source_Artist" in df.columns and "Source_Artist_ID" in df.columns:
-        for _, row in df.iterrows():
-            name = row["Source_Artist"]
-            sid = row["Source_Artist_ID"]
-            if isinstance(name, str) and isinstance(sid, str) and len(sid) == 22:
-                index.setdefault(name, sid)
-
-    # Related artists (qui apportent souvent des artistes non scrapés)
-    if "Related_Data_Raw" in df.columns:
-        for raw in df["Related_Data_Raw"].dropna():
-            try:
-                related = ast.literal_eval(str(raw))
-                if not isinstance(related, list):
-                    continue
-                for r in related:
-                    if isinstance(r, dict) and "name" in r and "id" in r:
-                        if isinstance(r["id"], str) and len(r["id"]) == 22:
-                            index.setdefault(r["name"], r["id"])
-            except (ValueError, SyntaxError, TypeError):
-                continue
-
+        # Related (souvent des artistes non scrapés)
+        try:
+            related = json.loads(sim_json) if sim_json else []
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(related, list):
+            continue
+        for r in related:
+            if isinstance(r, dict) and "name" in r and "id" in r:
+                if isinstance(r["id"], str) and len(r["id"]) == 22:
+                    index.setdefault(r["name"], r["id"])
+    conn.close()
     return index
 
 
-def load_spotify_similar(csv_path: Path) -> dict[str, list[dict]]:
-    """Retourne {artist: [{name, rank}, ...]} depuis le CSV Spotify.
-
-    Le CSV stocke `Related_Data_Raw` comme une `str(list[dict])` Python.
-    On parse avec `ast.literal_eval` qui gère nativement la syntaxe Python
-    (apostrophes dans les noms comme "N'to", "L'Impératrice", etc.).
-    """
-    if not csv_path.exists():
+def load_spotify_similar(db_path: Path) -> dict[str, list[dict]]:
+    """Retourne {artist: [{name, rank}, ...]} depuis la DB SQLite Spotify."""
+    if not db_path.exists():
         return {}
-    df = pd.read_csv(csv_path)
-    if 'Source_Artist' not in df.columns or 'Related_Data_Raw' not in df.columns:
-        return {}
-
-    result = {}
-    for _, row in df.iterrows():
-        raw = str(row['Related_Data_Raw'])
+    conn = sqlite3.connect(str(db_path))
+    cur = conn.execute(
+        "SELECT source_artist, similar_artists FROM artists WHERE status = 'success'"
+    )
+    result: dict[str, list[dict]] = {}
+    for src, sim_json in cur.fetchall():
         try:
-            related = ast.literal_eval(raw)
-            if not isinstance(related, list):
-                continue
-            result[row['Source_Artist']] = [
-                {'name': r['name'], 'rank': i + 1}
-                for i, r in enumerate(related)
-                if isinstance(r, dict) and 'name' in r
-            ]
-        except (ValueError, SyntaxError, KeyError, TypeError):
+            related = json.loads(sim_json) if sim_json else []
+        except (json.JSONDecodeError, TypeError):
             continue
+        if not isinstance(related, list):
+            continue
+        result[src] = [
+            {
+                "name": r["name"],
+                # `rank` est stocké explicitement depuis le refactor SQLite ;
+                # fallback sur l'index pour les anciennes données importées.
+                "rank": int(r.get("rank", i + 1)),
+            }
+            for i, r in enumerate(related)
+            if isinstance(r, dict) and "name" in r
+        ]
+    conn.close()
     return result
 
 

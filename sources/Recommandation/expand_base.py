@@ -42,7 +42,7 @@ import feedback
 DATA = Path(__file__).parent.parent.parent / "data"
 ARTISTES_LISTE_CSV = DATA / "Ressources" / "artistes_liste.csv"
 LASTFM_DB = DATA / "Artistes_Similaires_LastFM" / "similar_artists.db"
-SPOTIFY_CSV = DATA / "Artistes_Similaires_Spotify" / "output_related.csv"
+SPOTIFY_DB = DATA / "Artistes_Similaires_Spotify" / "similar_artists.db"
 BIBLIO_CSV = DATA / "Bibliotheque" / "bibliotheque.csv"
 PLAYLISTS_DIR = DATA / "Playlists_Spotify"
 
@@ -61,12 +61,13 @@ def _load_lastfm_sources() -> set[str]:
 
 
 def _load_spotify_sources() -> set[str]:
-    if not SPOTIFY_CSV.exists():
+    if not SPOTIFY_DB.exists():
         return set()
-    df = pd.read_csv(SPOTIFY_CSV)
-    if "Source_Artist" not in df.columns:
-        return set()
-    return set(df["Source_Artist"].dropna().astype(str))
+    conn = sqlite3.connect(str(SPOTIFY_DB))
+    cur = conn.execute("SELECT source_artist FROM artists WHERE status='success'")
+    sources = {row[0] for row in cur.fetchall()}
+    conn.close()
+    return sources
 
 
 def _load_existing_seeds() -> set[str]:
@@ -109,7 +110,7 @@ def _load_playlists() -> set[str]:
 def expand(top_n: int, min_citations: int, dry_run: bool) -> int:
     print(f"Chargement des bases de similarité...")
     lastfm_sim = load_lastfm_similar(LASTFM_DB)
-    spotify_sim = load_spotify_similar(SPOTIFY_CSV)
+    spotify_sim = load_spotify_similar(SPOTIFY_DB)
     pop = compute_artist_popularity(lastfm_sim, spotify_sim)
     print(f"  {len(pop)} artistes uniques cités comme similaires")
 

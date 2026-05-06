@@ -10,3 +10,18 @@ __pycache__/
 # Divers
 *.log
 .DS_Store
+.claude/
+
+# Musique_Jeux_Video : audio téléchargé hors du repo (KHINSIDER_OUTPUT).
+# On garde uniquement le CSV de pilotage dans data/Musique_Jeux_Video/.
+# Filet de sécurité : si jamais des fichiers audio finissaient ici par erreur,
+# ils ne partiraient pas sur Git.
+data/Musique_Jeux_Video/*
+!data/Musique_Jeux_Video/albums_khinsider.csv
+
+# Audio en général
+*.flac
+*.mp3
+*.wav
+*.ogg
+*.m4a

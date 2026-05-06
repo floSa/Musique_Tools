@@ -1,6 +1,6 @@
 # Musique_Tools
 
-Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe cinq services autour de Spotify, de la bibliothèque physique personnelle et des sources d'acquisition.
+Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe six services autour de Spotify, de la bibliothèque physique personnelle, des sources d'acquisition, et des bandes originales de jeux vidéo.
 
 ---
 
@@ -24,18 +24,23 @@ Musique_Tools/
 │   ├── Bibliotheque/
 │   │   └── bibliotheque.csv             # Généré par A_Recuperer --scan-library
 │   ├── Artistes_Similaires_LastFM/
-│   │   ├── output_related.csv           # Export CSV des résultats
-│   │   └── similar_artists.db           # Base SQLite (source de vérité)
-│   └── Artistes_Similaires_Spotify/
-│       ├── output_related.csv           # Export CSV des résultats
-│       └── debug_selection.csv          # Log de sélection des artistes
+│   │   ├── similar_artists.db           # Base SQLite (source de vérité)
+│   │   └── output_related.csv           # Export CSV (dérivé)
+│   ├── Artistes_Similaires_Spotify/
+│   │   ├── similar_artists.db           # Base SQLite (source de vérité, schéma aligné Last.fm)
+│   │   ├── output_related.csv           # Export CSV (dérivé, généré par export_to_csv.py)
+│   │   └── debug_selection.csv          # Log de sélection des artistes
+│   └── Musique_Jeux_Video/
+│       └── albums_khinsider.csv         # url + DL (booléen) — source de vérité
+│                                        # Audio téléchargé hors du repo (KHINSIDER_OUTPUT)
 │
 ├── sources/
 │   ├── Analyse/                         # Notebooks d'analyse Spotify
-│   ├── Artistes_Similaires_LastFM/      # Artistes similaires via API Last.fm
-│   ├── Artistes_Similaires_Spotify/     # Artistes similaires via scraping Spotify
+│   ├── Artistes_Similaires_LastFM/      # Artistes similaires via API Last.fm (SQLite)
+│   ├── Artistes_Similaires_Spotify/     # Artistes similaires via scraping Spotify (SQLite)
 │   ├── A_Recuperer/                     # Pipeline de recherche d'albums
 │   │   └── utils/
+│   ├── Musique_Jeux_Video/              # Scraper khinsider — OST de jeux vidéo
 │   └── Recommandation/                  # Interface Streamlit de découverte
 │
 ├── .env.example
@@ -53,6 +58,7 @@ Musique_Tools/
 | **Artistes_Similaires_Spotify** | `sources/Artistes_Similaires_Spotify/` | Artistes similaires "Fans Also Like" via scraping Spotify (rang) |
 | **A_Recuperer** | `sources/A_Recuperer/` | Identifie les albums à récupérer et les recherche sur Lyon + Qobuz |
 | **Recommandation** | `sources/Recommandation/` | Interface Streamlit de découverte d'artistes (Last.fm + Spotify) |
+| **Musique_Jeux_Video** | `sources/Musique_Jeux_Video/` | Scraper khinsider.com — bandes originales de jeux vidéo (FLAC/MP3) |
 
 ---
 
@@ -97,6 +103,11 @@ uv run playwright install chromium
 
 # Recommandation
 cd sources/Recommandation
+uv venv .venv --python 3.12
+uv pip install -r requirements.txt
+
+# Musique_Jeux_Video
+cd sources/Musique_Jeux_Video
 uv venv .venv --python 3.12
 uv pip install -r requirements.txt
 ```
@@ -187,6 +198,26 @@ L'interface s'ouvre sur [http://localhost:8501](http://localhost:8501).
 
 ---
 
+### Service : Musique_Jeux_Video
+
+Scraper [khinsider.com](https://downloads.khinsider.com/) pour télécharger des
+bandes originales de jeux vidéo. Privilégie le FLAC. Suivi de l'état via la
+colonne `DL` (booléen) du CSV d'input — source de vérité unique. Audio stocké
+**hors du repo** (par défaut `~/mes_projets/Musique_Jeux_Video/datas/`,
+configurable via `KHINSIDER_OUTPUT`).
+
+```bash
+cd sources/Musique_Jeux_Video
+
+# Ajouter une URL avec DL=False dans data/Musique_Jeux_Video/albums_khinsider.csv
+uv run python main.py
+# Le service met à jour DL=True après chaque album téléchargé avec succès
+```
+
+Voir [documentation/Musique_Jeux_Video.md](documentation/Musique_Jeux_Video.md).
+
+---
+
 ## Données
 
 ### Playlists Spotify (`data/Playlists_Spotify/`)
@@ -259,7 +290,16 @@ data/Ressources/artistes_liste.csv
         └──► Artistes_Similaires_Spotify (scraping Spotify)
                     │
                     ▼
-             output_related.csv (rang + ID Spotify)
+             similar_artists.db → output_related.csv (export dérivé)
+
+
+Albums khinsider (URLs dans albums_khinsider.csv)
+        │
+        ▼
+  Musique_Jeux_Video (requests + BeautifulSoup)
+        │
+        ▼
+  data/Musique_Jeux_Video/<Album>/*.flac (ou *.mp3)
 ```
 
 ---
@@ -270,3 +310,4 @@ data/Ressources/artistes_liste.csv
 |---|---|---|---|
 | `LASTFM_API_KEY` | Artistes_Similaires_LastFM | Clé API Last.fm | — |
 | `LIBRARY_PATH` | A_Recuperer | Chemin WSL vers la bibliothèque physique | `/mnt/m/musiques/__Autres` |
+| `KHINSIDER_OUTPUT` | Musique_Jeux_Video | Dossier de sortie pour les OST téléchargées (audio volumineux, hors repo) | `~/mes_projets/Musique_Jeux_Video/datas` |

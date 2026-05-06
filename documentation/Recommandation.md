@@ -49,7 +49,7 @@ l'UI (et de le réutiliser dans un notebook ou une CLI le cas échéant).
 | Playlists Spotify | `data/Playlists_Spotify/*.csv` | **Exclusion** : on ne recommande pas ce qu'on a déjà ajouté |
 | Historique d'écoute | `data/Historique_Spotify/*.json` | **Pondération** : top artistes → seeds, et boost des artistes déjà entendus |
 | Similaires Last.fm | `data/Artistes_Similaires_LastFM/similar_artists.db` | Source de similarité (score 0–1) + tags pour le filtre genre |
-| Similaires Spotify | `data/Artistes_Similaires_Spotify/output_related.csv` | Source de similarité (rang 1–40) |
+| Similaires Spotify | `data/Artistes_Similaires_Spotify/similar_artists.db` | Source de similarité (rang 1–40), DB SQLite alignée sur Last.fm |
 | Feedback utilisateur | `data/Recommandation/feedback.csv` | **Exclusion** des 👎, mémorisation des 👍 |
 
 Les playlists `Titres_AAAA.csv` et thématiques sont toutes incluses dans
@@ -78,7 +78,8 @@ que ça te plaise". D'où le **boost historique** plutôt qu'une exclusion.
 | Granularité | Score continu 0–1 | Rang discret 1–40 |
 | Population | Utilisateurs Last.fm (audiophiles, indé) | Utilisateurs Spotify (mainstream + tout) |
 | Algorithmie | Co-écoutes | Mélange opaque (audio + co-écoutes + édito) |
-| Couverture | ~5000 artistes pour ce projet | ~5700 artistes pour ce projet |
+| Couverture | ~5500 artistes pour ce projet | ~6300 artistes pour ce projet |
+| Stockage | SQLite (`similar_artists.db`) | SQLite (`similar_artists.db`, schéma aligné) |
 
 Les deux sources se complètent. Le slider `α` ("Last.fm vs Spotify") permet
 de privilégier l'une ou l'autre selon ce qu'on cherche : Last.fm tend à
