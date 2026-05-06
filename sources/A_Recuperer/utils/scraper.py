@@ -5,6 +5,7 @@ Matching strict (vs l'ancienne version "1 token commun suffit") basé sur
 catalogue.bm-lyon.fr. Voir `text_match.py` pour les helpers communs.
 """
 import csv
+import re
 import time
 import urllib.parse
 from datetime import datetime
@@ -29,6 +30,28 @@ QOBUZ_ALBUM_THRESHOLD = 0.55    # score titre album dans la discographie d'un ar
 # Compat : utilisé par d'éventuels imports externes
 def normalize_text(text: str) -> str:
     return normalize(text)
+
+
+def _clean_qobuz_display(s: str) -> str:
+    """Nettoie le texte d'un lien artiste Qobuz pour ne garder que le nom.
+
+    Le textContent d'un `<a>` artiste sur Qobuz inclut souvent du bruit
+    en plus du nom : "Worakls\\n21 albums", "L'Impératrice • Suivre", etc.
+    Sans nettoyage, on retrouve "21 albums" ou "Suivre" en `Artiste_Qobuz`.
+    """
+    if not s:
+        return ""
+    # Première ligne uniquement
+    s = s.split("\n")[0]
+    # Retirer compteurs "X albums", "X album"
+    s = re.sub(r"\b\d+\s+albums?\b", "", s, flags=re.IGNORECASE)
+    # Retirer indicateurs UI courants
+    s = re.sub(r"\b(suivre|follow|artiste|artist)\b", "", s, flags=re.IGNORECASE)
+    # Couper sur les séparateurs verticaux
+    s = s.split("|")[0].split("•")[0]
+    # Compresser whitespace
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
 
 # ---------------------------------------------------------------------------
@@ -153,13 +176,17 @@ def get_qobuz_link_via_artist(page, artist: str, album: str):
             if "/interpreter/" not in href:
                 continue
             slug_as_name = href.split("/interpreter/")[1].split("/")[0].replace("-", " ")
+            # Nettoyer le displayName (retirer "21 albums", "Suivre", etc.)
+            cleaned_display = _clean_qobuz_display(c.get("displayName", ""))
+            # Si après nettoyage il ne reste rien d'utile, on retombe sur le slug
+            display_for_score = cleaned_display or slug_as_name
             score = max(
-                name_similarity(c["displayName"], artist),
+                name_similarity(display_for_score, artist),
                 name_similarity(slug_as_name, artist),
             )
             if score > best_artist_score:
                 best_artist_score = score
-                best_artist = dict(c, score=score)
+                best_artist = dict(c, score=score, displayName=display_for_score)
 
         if not best_artist or best_artist_score < ARTIST_MATCH_THRESHOLD:
             print(f"   [Qobuz] No strict artist match (best={best_artist_score:.2f})")
@@ -240,7 +267,8 @@ def get_qobuz_play_url(page, artist: str, album: str):
                 item = album_items.nth(i)
                 try:
                     artist_el = item.locator(".artist").first
-                    found_artist = artist_el.inner_text().strip() if artist_el.count() else ""
+                    found_artist_raw = artist_el.inner_text().strip() if artist_el.count() else ""
+                    found_artist = _clean_qobuz_display(found_artist_raw)
                     title_el = item.locator(".title").first
                     found_album = title_el.inner_text().strip() if title_el.count() else ""
                     link = item.locator("a[href*='/album/']").first
