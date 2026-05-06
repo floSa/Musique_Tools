@@ -20,9 +20,11 @@ Musique_Tools/
 │   │   ├── albums_match_complet.csv     # Généré par A_Recuperer --match (avec scores fuzzy)
 │   │   └── resultats_cotes.csv          # Généré par A_Recuperer --search
 │   ├── Resultats/
-│   │   └── resultats_final.csv          # Généré par A_Recuperer --consolidate (jeu final)
+│   │   ├── resultats_final.csv          # Généré par A_Recuperer --consolidate (jeu final)
+│   │   └── resultats_final.xlsx         # Excel équivalent, généré en même temps
 │   ├── Bibliotheque/
-│   │   └── bibliotheque.csv             # Généré par A_Recuperer --scan-library
+│   │   ├── bibliotheque.csv             # Généré par A_Recuperer --scan-library (4 racines, colonne Path)
+│   │   └── bibliotheque.xlsx            # Excel équivalent, généré en même temps
 │   ├── Artistes_Similaires_LastFM/
 │   │   ├── similar_artists.db           # Base SQLite (source de vérité)
 │   │   └── output_related.csv           # Export CSV (dérivé)
@@ -206,10 +208,19 @@ cd sources/A_Recuperer
 uv run python main.py --all              # Pipeline complet
 
 uv run python main.py --extract-artists  # Extrait les artistes uniques des playlists → artistes_liste.csv
-uv run python main.py --scan-library     # Scan M:\musiques\__Autres → bibliotheque.csv
+uv run python main.py --scan-library     # Scan des 4 racines (__Autres, __B.O, __COMPILS, __JEUX) → bibliotheque.csv + .xlsx
 uv run python main.py --match            # Matching playlists vs bibliothèque → albums_a_rechercher.csv
 uv run python main.py --search           # Scraper Lyon + Qobuz → resultats_cotes.csv
-uv run python main.py --consolidate      # Fusionne tout → data/Resultats/resultats_final.csv
+uv run python main.py --consolidate      # Fusionne tout → data/Resultats/resultats_final.csv + .xlsx
+```
+
+Restreindre le pipeline à **une seule playlist** via la variable d'env `PLAYLIST_FILTER` (les fichiers de sortie sont alors suffixés) :
+
+```bash
+PLAYLIST_FILTER=Partage uv run python main.py --match
+PLAYLIST_FILTER=Partage uv run python main.py --search
+PLAYLIST_FILTER=Partage uv run python main.py --consolidate
+# → data/Resultats/resultats_final_Partage.xlsx
 ```
 
 ---
@@ -271,7 +282,16 @@ Voir [documentation/Musique_Jeux_Video.md](documentation/Musique_Jeux_Video.md).
 
 ### Bibliothèque physique
 
-Accessible depuis WSL via `/mnt/m/musiques/__Autres`. Structure : `__Autres/Artiste/Album/`.
+Accessible depuis WSL via `/mnt/m/musiques/`. Le scan combine **4 racines** avec des conventions différentes :
+
+| Racine | Structure | Mapping |
+|---|---|---|
+| `__Autres`  | `Artiste/Album/`       | tel quel |
+| `__B.O`     | `"Album - Artiste"/`   | split au dernier `-`, strip |
+| `__COMPILS` | `Album/`               | Artist forcé à `"Various Artists"` |
+| `__JEUX`    | `Album/`               | Artist forcé à `"BO Jeux"` |
+
+Le résultat est un seul `bibliotheque.csv` (+ `.xlsx`) avec colonnes `Artist, Album, Path` (chemin physique du dossier album, propagé dans le fichier final via `Path_Possede`).
 
 > Le lecteur M: doit être monté dans WSL avant de lancer `--scan-library`. Mount manuel (temporaire) :
 > ```bash
