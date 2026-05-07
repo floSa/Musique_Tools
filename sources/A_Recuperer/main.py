@@ -34,13 +34,10 @@ RESULTATS_CSV            = RESSOURCES_DIR / "resultats_cotes.csv"
 RESULTATS_FINAL_CSV      = DATA_DIR / "Resultats" / "resultats_final.csv"
 ARTISTES_LISTE_CSV       = RESSOURCES_DIR / "artistes_liste.csv"
 
-LIBRARY_PATH           = os.getenv("LIBRARY_PATH",           "/mnt/m/musiques/__Autres")
-LIBRARY_BO_PATH        = os.getenv("LIBRARY_BO_PATH",        "/mnt/m/musiques/__B.O")
-LIBRARY_COMPILS_PATH   = os.getenv("LIBRARY_COMPILS_PATH",   "/mnt/m/musiques/__COMPILS")
-LIBRARY_JEUX_PATH      = os.getenv("LIBRARY_JEUX_PATH",      "/mnt/m/musiques/__JEUX")
-LIBRARY_CLASSIQUE_PATH = os.getenv("LIBRARY_CLASSIQUE_PATH", "/mnt/m/musiques/__CLASSIQUE")
-LIBRARY_ELECTRO_PATH   = os.getenv("LIBRARY_ELECTRO_PATH",   "/mnt/m/musiques/__ELECTRO")
-LIBRARY_MUZAK_PATH     = os.getenv("LIBRARY_MUZAK_PATH",     "/mnt/m/musiques/__MUZAK")
+LIBRARY_PATH         = os.getenv("LIBRARY_PATH",         "/mnt/m/musiques/__Autres")
+LIBRARY_BO_PATH      = os.getenv("LIBRARY_BO_PATH",      "/mnt/m/musiques/__B.O")
+LIBRARY_COMPILS_PATH = os.getenv("LIBRARY_COMPILS_PATH", "/mnt/m/musiques/__COMPILS")
+LIBRARY_JEUX_PATH    = os.getenv("LIBRARY_JEUX_PATH",    "/mnt/m/musiques/__JEUX")
 
 # Filtre playlist : si défini, restreint --match/--search/--consolidate à une
 # seule playlist. Les fichiers générés sont suffixés (cf. _suffixed). Vide ou
@@ -69,21 +66,15 @@ def cmd_extract_artists():
 def cmd_scan_library():
     from utils.library import scan_all_libraries
     print("Scan des bibliothèques :")
-    print(f"  __Autres    : {LIBRARY_PATH}")
-    print(f"  __B.O       : {LIBRARY_BO_PATH}")
-    print(f"  __COMPILS   : {LIBRARY_COMPILS_PATH}")
-    print(f"  __JEUX      : {LIBRARY_JEUX_PATH}")
-    print(f"  __CLASSIQUE : {LIBRARY_CLASSIQUE_PATH}")
-    print(f"  __ELECTRO   : {LIBRARY_ELECTRO_PATH}")
-    print(f"  __MUZAK     : {LIBRARY_MUZAK_PATH}")
+    print(f"  __Autres  : {LIBRARY_PATH}")
+    print(f"  __B.O     : {LIBRARY_BO_PATH}")
+    print(f"  __COMPILS : {LIBRARY_COMPILS_PATH}")
+    print(f"  __JEUX    : {LIBRARY_JEUX_PATH}")
     df = scan_all_libraries(
         autres=LIBRARY_PATH,
         bo=LIBRARY_BO_PATH,
         compils=LIBRARY_COMPILS_PATH,
         jeux=LIBRARY_JEUX_PATH,
-        classique=LIBRARY_CLASSIQUE_PATH,
-        electro=LIBRARY_ELECTRO_PATH,
-        muzak=LIBRARY_MUZAK_PATH,
         output_path=BIBLIOTHEQUE_CSV,
     )
     print(f"{len(df)} albums trouvés au total.")

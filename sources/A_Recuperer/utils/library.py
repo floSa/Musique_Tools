@@ -1,16 +1,13 @@
 """Scan de la bibliothèque physique.
 
-La bibliothèque a 7 racines avec des conventions de nommage différentes :
+La bibliothèque a 4 racines avec des conventions de nommage différentes :
 
 | Racine                         | Structure        | Mapping                                     |
 |--------------------------------|------------------|---------------------------------------------|
 | M:\\musiques\\__Autres         | Artiste/Album/   | tel quel                                    |
-| M:\\musiques\\__B.O            | "Album - Artiste"/ | split au dernier '-' ; sinon Artist="BO"  |
+| M:\\musiques\\__B.O            | "Album - Artiste"/ | split sur le dernier '-' du nom de dossier |
 | M:\\musiques\\__COMPILS        | Album/           | Artist forcé à "Various Artists"            |
 | M:\\musiques\\__JEUX           | Album/           | Artist forcé à "BO Jeux"                    |
-| M:\\musiques\\__CLASSIQUE      | Album/[CDx/]     | Artist forcé à "Classique"                  |
-| M:\\musiques\\__ELECTRO        | Album/           | Artist forcé à "Electro"                    |
-| M:\\musiques\\__MUZAK          | Album/           | Artist forcé à "Muzak"                      |
 """
 import pandas as pd
 from pathlib import Path
@@ -18,20 +15,14 @@ from pathlib import Path
 
 # Racines par défaut (sous WSL via /mnt/m/...)
 DEFAULT_ROOTS = {
-    "autres":    "/mnt/m/musiques/__Autres",
-    "bo":        "/mnt/m/musiques/__B.O",
-    "compils":   "/mnt/m/musiques/__COMPILS",
-    "jeux":      "/mnt/m/musiques/__JEUX",
-    "classique": "/mnt/m/musiques/__CLASSIQUE",
-    "electro":   "/mnt/m/musiques/__ELECTRO",
-    "muzak":     "/mnt/m/musiques/__MUZAK",
+    "autres":  "/mnt/m/musiques/__Autres",
+    "bo":      "/mnt/m/musiques/__B.O",
+    "compils": "/mnt/m/musiques/__COMPILS",
+    "jeux":    "/mnt/m/musiques/__JEUX",
 }
 
-COMPILS_ARTIST   = "Various Artists"
-JEUX_ARTIST      = "BO Jeux"
-CLASSIQUE_ARTIST = "Classique"
-ELECTRO_ARTIST   = "Electro"
-MUZAK_ARTIST     = "Muzak"
+COMPILS_ARTIST = "Various Artists"
+JEUX_ARTIST    = "BO Jeux"
 
 
 # ---------------------------------------------------------------------------
@@ -137,37 +128,28 @@ def scan_library(
 
 
 def scan_all_libraries(
-    autres:    str | Path | None = None,
-    bo:        str | Path | None = None,
-    compils:   str | Path | None = None,
-    jeux:      str | Path | None = None,
-    classique: str | Path | None = None,
-    electro:   str | Path | None = None,
-    muzak:     str | Path | None = None,
+    autres:  str | Path | None = None,
+    bo:      str | Path | None = None,
+    compils: str | Path | None = None,
+    jeux:    str | Path | None = None,
     output_path: str | Path | None = None,
 ) -> pd.DataFrame:
-    """Scan combiné des 7 racines (chacune optionnelle si chemin None).
+    """Scan combiné des 4 racines (chacune optionnelle si chemin None).
 
     Toute racine `None` est remplacée par sa valeur par défaut. Pour désactiver
     explicitement une racine, passer un chemin inexistant ou modifier les
     appelants pour ne pas l'inclure.
     """
-    autres    = autres    if autres    is not None else DEFAULT_ROOTS["autres"]
-    bo        = bo        if bo        is not None else DEFAULT_ROOTS["bo"]
-    compils   = compils   if compils   is not None else DEFAULT_ROOTS["compils"]
-    jeux      = jeux      if jeux      is not None else DEFAULT_ROOTS["jeux"]
-    classique = classique if classique is not None else DEFAULT_ROOTS["classique"]
-    electro   = electro   if electro   is not None else DEFAULT_ROOTS["electro"]
-    muzak     = muzak     if muzak     is not None else DEFAULT_ROOTS["muzak"]
+    autres  = autres  if autres  is not None else DEFAULT_ROOTS["autres"]
+    bo      = bo      if bo      is not None else DEFAULT_ROOTS["bo"]
+    compils = compils if compils is not None else DEFAULT_ROOTS["compils"]
+    jeux    = jeux    if jeux    is not None else DEFAULT_ROOTS["jeux"]
 
     rows: list[dict] = []
     rows += scan_artist_album_root(autres)
     rows += scan_bo_root(bo)
-    rows += scan_album_only_root(compils,   COMPILS_ARTIST)
-    rows += scan_album_only_root(jeux,      JEUX_ARTIST)
-    rows += scan_album_only_root(classique, CLASSIQUE_ARTIST)
-    rows += scan_album_only_root(electro,   ELECTRO_ARTIST)
-    rows += scan_album_only_root(muzak,     MUZAK_ARTIST)
+    rows += scan_album_only_root(compils, COMPILS_ARTIST)
+    rows += scan_album_only_root(jeux,    JEUX_ARTIST)
 
     df = pd.DataFrame(rows, columns=["Artist", "Album", "Path"])
     if not df.empty:

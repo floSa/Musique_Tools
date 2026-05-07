@@ -293,12 +293,9 @@ La bibliothèque est répartie sur 4 racines avec des conventions distinctes :
 | Racine Windows | Convention dossier | Mapping `(Artist, Album)` |
 |---|---|---|
 | `M:\musiques\__Autres`  | `Artiste/Album/`        | tel quel |
-| `M:\musiques\__B.O`        | `"Album - Artiste"/` ou autre | split au **dernier** `-` si présent ; sinon `Artist="BO"`, `Album=nom_dossier` |
-| `M:\musiques\__COMPILS`    | `Album/`                | Artist = `"Various Artists"` |
-| `M:\musiques\__JEUX`       | `Album/`                | Artist = `"BO Jeux"` |
-| `M:\musiques\__CLASSIQUE`  | `Album/[CDx/]`          | Artist = `"Classique"` (le 1er niveau est l'œuvre/album) |
-| `M:\musiques\__ELECTRO`    | `Album/`                | Artist = `"Electro"` |
-| `M:\musiques\__MUZAK`      | `Album/`                | Artist = `"Muzak"` |
+| `M:\musiques\__B.O`     | `"Album - Artiste"/` ou autre | split au **dernier** `-` si présent ; sinon `Artist="BO"`, `Album=nom_dossier` |
+| `M:\musiques\__COMPILS` | `Album/`                | Artist = `"Various Artists"` |
+| `M:\musiques\__JEUX`    | `Album/`                | Artist = `"BO Jeux"` |
 
 Exemple `__B.O` :
 - `1989-2024 - John Williams` → split au dernier `-` → `Album="1989-2024"`, `Artist="John Williams"`
@@ -306,10 +303,9 @@ Exemple `__B.O` :
 
 Accessible depuis WSL via `/mnt/m/musiques/...`.
 
-Les 7 chemins sont configurables via variables d'environnement :
+Les 4 chemins sont configurables via variables d'environnement :
 `LIBRARY_PATH` (défaut `__Autres`), `LIBRARY_BO_PATH`, `LIBRARY_COMPILS_PATH`,
-`LIBRARY_JEUX_PATH`, `LIBRARY_CLASSIQUE_PATH`, `LIBRARY_ELECTRO_PATH`,
-`LIBRARY_MUZAK_PATH`.
+`LIBRARY_JEUX_PATH`.
 
 > **Le lecteur M: doit être monté dans WSL avant de lancer `--scan-library`.**
 > WSL n'auto-monte pas les lecteurs connectés après son démarrage (lecteurs réseau, externes, etc.).
