@@ -64,7 +64,28 @@ def cmd_extract_artists():
 
 
 def cmd_scan_library():
+    """Scanne les 4 racines de la bibliothèque physique.
+
+    Si M: n'est pas accessible (lecteur non monté, network share down…),
+    on **n'écrase pas** `bibliotheque.csv` existante : on garde l'ancien
+    snapshot et on prévient l'utilisateur. Évite de perdre la biblio
+    quand on lance le pipeline depuis une machine sans accès au M:.
+    """
     from utils.library import scan_all_libraries
+
+    # On juge l'accès à M: par la racine principale __Autres : si elle
+    # n'existe pas, le drive n'est pas monté.
+    if not Path(LIBRARY_PATH).exists():
+        if BIBLIOTHEQUE_CSV.exists():
+            existing = pd.read_csv(BIBLIOTHEQUE_CSV)
+            print(f"⚠ M: non accessible ({LIBRARY_PATH} introuvable).")
+            print(f"  Conservation de la bibliothèque existante : "
+                  f"{BIBLIOTHEQUE_CSV} ({len(existing)} albums)")
+        else:
+            print(f"⚠ M: non accessible ({LIBRARY_PATH}) ET pas de "
+                  f"bibliotheque.csv existante. Rien à faire.")
+        return
+
     print("Scan des bibliothèques :")
     print(f"  __Autres  : {LIBRARY_PATH}")
     print(f"  __B.O     : {LIBRARY_BO_PATH}")
@@ -111,26 +132,6 @@ def cmd_match(playlist: str | None = None):
     else:
         print(f"Bibliothèque non trouvée ({BIBLIOTHEQUE_CSV}). Lance d'abord --scan-library.")
         return
-
-    # Élargissement de la biblio : si un fichier `Albums_musique_AAAA_MM.xlsx`
-    # existe dans data/Ressources/, on prend le plus récent (tri lexical sur
-    # AAAA_MM = chronologique) et on l'unionne à bibliotheque.csv. Ce fichier
-    # liste les albums "considérés possédés" plus largement que le scan disque
-    # (acquisitions pas encore organisées dans M:, formats hors filesystem,
-    # etc). Sans ce fichier, comportement inchangé (biblio.csv seule).
-    albums_xlsx_files = sorted(RESSOURCES_DIR.glob("Albums_musique_*.xlsx"))
-    if albums_xlsx_files:
-        latest_xlsx = albums_xlsx_files[-1]
-        print(f"Élargissement biblio via {latest_xlsx.name}...")
-        df_xlsx = pd.read_excel(latest_xlsx)
-        # On garde Artist + Album, et Path si présent dans biblio.csv (sinon vide)
-        df_xlsx_norm = df_xlsx[["Artist", "Album"]].copy()
-        if "Path" in df_biblio.columns:
-            df_xlsx_norm["Path"] = ""
-        before = len(df_biblio)
-        df_biblio = pd.concat([df_biblio, df_xlsx_norm], ignore_index=True)
-        df_biblio = df_biblio.drop_duplicates(subset=["Artist", "Album"]).reset_index(drop=True)
-        print(f"  Biblio élargie : {before} → {len(df_biblio)} entrées (+{len(df_biblio) - before})")
 
     print("Chargement des recherches déjà effectuées...")
     if RECHERCHES_XLSX.exists():

@@ -15,7 +15,7 @@ Musique_Tools/
 │   ├── Ressources/                      # Fichiers de référence et résultats intermédiaires
 │   │   ├── artistes_liste.csv           # Généré par A_Recuperer --extract-artists (partagé)
 │   │   ├── recherches_effectuees.xlsx   # Albums déjà recherchés (évite les doublons)
-│   │   ├── Albums_musique_AAAA_MM.xlsx  # Mapping noms Spotify ↔ noms bibliothèque physique
+│   │   ├── Albums_musique_AAAA_MM.xlsx  # Snapshot mensuel de la biblio (vue historique, non utilisé par le pipeline)
 │   │   ├── albums_a_rechercher.csv      # Généré par A_Recuperer --match
 │   │   ├── albums_match_complet.csv     # Généré par A_Recuperer --match (avec scores fuzzy)
 │   │   └── resultats_cotes.csv          # Généré par A_Recuperer --search
@@ -274,7 +274,7 @@ Voir [documentation/Musique_Jeux_Video.md](documentation/Musique_Jeux_Video.md).
 | Fichier | Rôle | Mis à jour par |
 |---|---|---|
 | `recherches_effectuees.xlsx` | Albums déjà recherchés | Manuellement |
-| `Albums_musique_AAAA_MM.xlsx` | Mapping noms Spotify ↔ noms physiques | Manuellement (mensuel) |
+| `Albums_musique_AAAA_MM.xlsx` | Snapshot mensuel de la biblio (sauvegarde, non utilisé par le pipeline) | Manuellement (mensuel) |
 | `albums_a_rechercher.csv` | Albums à scraper | `A_Recuperer --match` |
 | `albums_match_complet.csv` | Idem + scores fuzzy | `A_Recuperer --match` |
 | `resultats_cotes.csv` | Résultats bruts Lyon + Qobuz | `A_Recuperer --search` |

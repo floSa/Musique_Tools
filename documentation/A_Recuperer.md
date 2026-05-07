@@ -43,14 +43,21 @@ sources/A_Recuperer/
 `scan_all_libraries()` parcourt **4 racines** avec des conventions de nommage
 différentes (cf. `utils/library.py`) :
 
-- `M:\musiques\__Autres`  — `Artiste/Album/` (cas standard)
+- `M:\musiques\__Autres`  — `Artiste/Album/` (cas standard, **seule racine utilisée pour le matching réel**)
 - `M:\musiques\__B.O`     — `"Album - Artiste"/` (split au dernier `-`)
 - `M:\musiques\__COMPILS` — `Album/` → Artist forcé à `"Various Artists"`
 - `M:\musiques\__JEUX`    — `Album/` → Artist forcé à `"BO Jeux"`
 
 Le résultat fusionné est dédoublonné et sauvegardé dans
-`data/Bibliotheque/bibliotheque.csv`. À relancer uniquement quand la
-bibliothèque physique a changé.
+`data/Bibliotheque/bibliotheque.csv` (+ `bibliotheque.xlsx`).
+
+**M: optionnel** : si le lecteur n'est pas accessible (ex: pipeline lancé
+depuis une machine sans le partage réseau monté), `--scan-library` ne
+fait rien — le `bibliotheque.csv` existant est conservé tel quel. Permet
+de relancer `--match`/`--search`/`--consolidate` sur un snapshot
+précédent sans perdre la biblio.
+
+À relancer uniquement quand la bibliothèque physique a changé.
 
 ---
 
@@ -89,11 +96,7 @@ Source 1 : df_playlists
   │    → suppression de "Deluxe", "Radio Edit", "EP"
   │    → split sur la virgule (prend le premier artiste)
   │
-Source 2 : df_biblio = bibliotheque.csv ∪ Albums_musique_AAAA_MM.xlsx (le plus récent)
-  │  ⚠ le xlsx est tenu à la main et liste les albums "considérés possédés"
-  │    plus largement que le scan disque (acquisitions hors filesystem,
-  │    fichiers vrac sans dossier album, etc.). 858 entrées additionnelles
-  │    en pratique (mai 2026).
+Source 2 : df_biblio = bibliotheque.csv (les 4 racines scannées)
   │  même normalisation appliquée
   │
   ▼
@@ -112,14 +115,13 @@ match_albums_with_fuzz()   (rapidfuzz · token_sort_ratio)
   └── reste → data/Ressources/albums_a_rechercher.csv
 ```
 
-**Mesure indicative sur la playlist Partage** (avril 2026, biblio ~11k albums) :
+**Mesure typique sur la playlist Partage** (mai 2026, biblio ~11k albums) :
 
 | Étape | Albums restants |
 |---|---|
-| Avant filtrage | 3 136 |
-| Après matching biblio (fuzzy ≥80) | ~2 400 |
-| Après élargissement via Albums_musique_2026_05.xlsx | ~614 |
-| Après filtre `recherches_effectuees.xlsx` | **40** |
+| Albums Partage uniques | 3 136 |
+| Après matching biblio fuzzy (Album_sim ≥ 80 ⇒ exclus) | quelques centaines |
+| Après filtre `recherches_effectuees.xlsx` | **~40** |
 
 ---
 
@@ -452,7 +454,9 @@ Tenu à jour manuellement. Permet de ne pas re-scraper des albums déjà traité
 
 ### `data/Ressources/Albums_musique_AAAA_MM.xlsx`
 
-Fichier de correspondance entre les noms tels qu'ils apparaissent sur Spotify et les noms réels dans la bibliothèque physique (ex : un album avec un titre légèrement différent, une édition différente). Mis à jour manuellement chaque mois. Utilisé pour affiner le matching.
+Snapshot mensuel de la bibliothèque physique (Artist, Album). **Non
+utilisé par le pipeline** — sert uniquement de sauvegarde / vue
+historique de la biblio à un instant donné. Mis à jour manuellement.
 
 ---
 
