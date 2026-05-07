@@ -32,6 +32,31 @@ def normalize_text(text: str) -> str:
     return normalize(text)
 
 
+# ---------------------------------------------------------------------------
+# CONVENTION URL QOBUZ — IMPORTANT
+# ---------------------------------------------------------------------------
+# Toute URL Qobuz **retournée à l'utilisateur** (qui finira dans
+# resultats_cotes.csv et resultats_final.csv) DOIT pointer sur
+# `play.qobuz.com`, jamais `www.qobuz.com`.
+#
+# - URL d'album trouvé : https://play.qobuz.com/album/<id>
+# - URL de recherche fallback : https://play.qobuz.com/search/<query>
+#
+# Les URLs `www.qobuz.com/...` peuvent apparaître DANS LE CODE mais
+# uniquement pour la NAVIGATION INTERNE du scraper (Playwright doit y
+# aller pour parser les pages publiques car play.qobuz.com est une SPA
+# login-walled). Ces URLs internes ne doivent jamais sortir vers
+# l'utilisateur.
+# ---------------------------------------------------------------------------
+
+def _qobuz_search_url(artist: str, album: str) -> str:
+    """URL Qobuz à renvoyer quand on n'a pas trouvé l'album précis.
+
+    Format : `https://play.qobuz.com/search/<query>` (jamais www.qobuz.com).
+    """
+    return f"https://play.qobuz.com/search/{urllib.parse.quote(f'{artist} {album}')}"
+
+
 def _clean_qobuz_display(s: str) -> str:
     """Nettoie le texte d'un lien artiste Qobuz pour ne garder que le nom.
 
@@ -295,15 +320,13 @@ def get_qobuz_play_url(page, artist: str, album: str):
                     top["artist"], top["album"], top["score"],
                 )
 
-        # Pas de div.album-item → on tente le 1er lien /fr-fr/album/, mais sans
-        # garantie d'artiste (on ne peut pas valider). On renvoie l'URL de
-        # recherche pour que l'utilisateur tranche manuellement.
-        encoded_query = urllib.parse.quote(f"{artist} {album}")
-        return f"https://www.qobuz.com/fr-fr/search?q={encoded_query}"
+        # Pas de match : on renvoie l'URL de recherche play.qobuz.com pour que
+        # l'utilisateur tranche manuellement. IMPORTANT : on utilise toujours
+        # play.qobuz.com (jamais www.qobuz.com) dans les URLs retournees.
+        return _qobuz_search_url(artist, album)
     except Exception as e:
         print(f"   [Qobuz] Error in direct search: {e}")
-        encoded_query = urllib.parse.quote(f"{artist} {album}")
-        return f"https://www.qobuz.com/fr-fr/search?q={encoded_query}"
+        return _qobuz_search_url(artist, album)
 
 
 # ---------------------------------------------------------------------------
