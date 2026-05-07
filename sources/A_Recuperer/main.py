@@ -24,15 +24,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = ROOT / "data"
-PLAYLISTS_DIR = DATA_DIR / "Playlists_Spotify"
-RESSOURCES_DIR = DATA_DIR / "Ressources"
+PLAYLISTS_DIR  = DATA_DIR / "Playlists_Spotify"
+RESSOURCES_DIR = DATA_DIR / "Ressources"   # tenu à la main (recherches_effectuees, artistes_liste)
+PIPELINE_DIR   = DATA_DIR / "Pipeline"     # fichiers intermédiaires regénérables
+RESULTATS_DIR  = DATA_DIR / "Resultats"    # fichier final pour consultation
+
 BIBLIOTHEQUE_CSV = DATA_DIR / "Bibliotheque" / "bibliotheque.csv"
-RECHERCHES_XLSX = RESSOURCES_DIR / "recherches_effectuees.xlsx"
-ALBUMS_A_RECHERCHER_CSV  = RESSOURCES_DIR / "albums_a_rechercher.csv"
-ALBUMS_MATCH_COMPLET_CSV = RESSOURCES_DIR / "albums_match_complet.csv"
-RESULTATS_CSV            = RESSOURCES_DIR / "resultats_cotes.csv"
-RESULTATS_FINAL_CSV      = DATA_DIR / "Resultats" / "resultats_final.csv"
-ARTISTES_LISTE_CSV       = RESSOURCES_DIR / "artistes_liste.csv"
+RECHERCHES_XLSX  = RESSOURCES_DIR / "recherches_effectuees.xlsx"
+ARTISTES_LISTE_CSV = RESSOURCES_DIR / "artistes_liste.csv"  # partagé avec les autres services
+
+ALBUMS_A_RECHERCHER_CSV  = PIPELINE_DIR / "albums_a_rechercher.csv"
+ALBUMS_MATCH_COMPLET_CSV = PIPELINE_DIR / "albums_match_complet.csv"
+RESULTATS_CSV            = PIPELINE_DIR / "resultats_cotes.csv"
+RESULTATS_FINAL_CSV      = RESULTATS_DIR / "resultats_final.csv"
 
 LIBRARY_PATH         = os.getenv("LIBRARY_PATH",         "/mnt/m/musiques/__Autres")
 LIBRARY_BO_PATH      = os.getenv("LIBRARY_BO_PATH",      "/mnt/m/musiques/__B.O")

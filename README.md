@@ -12,19 +12,21 @@ Musique_Tools/
 ├── data/
 │   ├── Historique_Spotify/              # Exports JSON de l'historique Spotify (2012 →)
 │   ├── Playlists_Spotify/               # CSV des playlists (Titres_AAAA + thématiques)
-│   ├── Ressources/                      # Fichiers de référence et résultats intermédiaires
-│   │   ├── artistes_liste.csv           # Généré par A_Recuperer --extract-artists (partagé)
-│   │   ├── recherches_effectuees.xlsx   # Albums déjà recherchés (évite les doublons)
-│   │   ├── Albums_musique_AAAA_MM.xlsx  # Snapshot mensuel de la biblio (vue historique, non utilisé par le pipeline)
-│   │   ├── albums_a_rechercher.csv      # Généré par A_Recuperer --match
-│   │   ├── albums_match_complet.csv     # Généré par A_Recuperer --match (avec scores fuzzy)
-│   │   └── resultats_cotes.csv          # Généré par A_Recuperer --search
-│   ├── Resultats/
-│   │   ├── resultats_final.csv          # Généré par A_Recuperer --consolidate (jeu final)
-│   │   └── resultats_final.xlsx         # Excel équivalent, généré en même temps
+│   ├── Ressources/                      # Sources tenues à la main (pas générées)
+│   │   ├── artistes_liste.csv           # Généré par A_Recuperer --extract-artists (partagé entre services)
+│   │   ├── recherches_effectuees.xlsx   # Tenu à la main : albums déjà cherchés (filtre du pipeline)
+│   │   └── recherches_effectuees.csv    # Export CSV de l'xlsx
+│   ├── Pipeline/                        # Fichiers intermédiaires du pipeline A_Recuperer (regénérables)
+│   │   ├── albums_a_rechercher.csv      # Généré par --match  (input pour --search)
+│   │   ├── albums_match_complet.csv     # Généré par --match  (input pour --consolidate, avec scores fuzzy)
+│   │   ├── resultats_cotes.csv          # Généré par --search (input pour --consolidate)
+│   │   └── debug_selection.csv          # Log des sélections du scraper (audit)
+│   ├── Resultats/                       # Sortie finale pour consultation
+│   │   ├── resultats_final.csv          # Généré par A_Recuperer --consolidate
+│   │   └── resultats_final.xlsx         # Excel équivalent
 │   ├── Bibliotheque/
 │   │   ├── bibliotheque.csv             # Généré par A_Recuperer --scan-library (4 racines, colonne Path)
-│   │   └── bibliotheque.xlsx            # Excel équivalent, généré en même temps
+│   │   └── bibliotheque.xlsx            # Excel équivalent
 │   ├── Artistes_Similaires_LastFM/
 │   │   ├── similar_artists.db           # Base SQLite (source de vérité)
 │   │   └── output_related.csv           # Export CSV (dérivé)
@@ -274,11 +276,10 @@ Voir [documentation/Musique_Jeux_Video.md](documentation/Musique_Jeux_Video.md).
 | Fichier | Rôle | Mis à jour par |
 |---|---|---|
 | `recherches_effectuees.xlsx` | Albums déjà recherchés | Manuellement |
-| `Albums_musique_AAAA_MM.xlsx` | Snapshot mensuel de la biblio (sauvegarde, non utilisé par le pipeline) | Manuellement (mensuel) |
-| `albums_a_rechercher.csv` | Albums à scraper | `A_Recuperer --match` |
-| `albums_match_complet.csv` | Idem + scores fuzzy | `A_Recuperer --match` |
-| `resultats_cotes.csv` | Résultats bruts Lyon + Qobuz | `A_Recuperer --search` |
-| `data/Resultats/resultats_final.csv` | Jeu de données final consolidé | `A_Recuperer --consolidate` |
+| `data/Pipeline/albums_a_rechercher.csv` | Albums à scraper | `A_Recuperer --match` |
+| `data/Pipeline/albums_match_complet.csv` | Idem + scores fuzzy | `A_Recuperer --match` |
+| `data/Pipeline/resultats_cotes.csv` | Résultats bruts Lyon + Qobuz | `A_Recuperer --search` |
+| `data/Resultats/resultats_final.csv` (+ `.xlsx`) | Jeu de données final consolidé | `A_Recuperer --consolidate` |
 
 ### Bibliothèque physique
 

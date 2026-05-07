@@ -192,10 +192,10 @@ pour ne pas écraser le run global :
 
 | Fichier global | Avec `PLAYLIST_FILTER=Partage` |
 |---|---|
-| `albums_a_rechercher.csv`  | `albums_a_rechercher_Partage.csv` |
-| `albums_match_complet.csv` | `albums_match_complet_Partage.csv` |
-| `resultats_cotes.csv`      | `resultats_cotes_Partage.csv` |
-| `resultats_final.csv`      | `resultats_final_Partage.csv` |
+| `data/Pipeline/albums_a_rechercher.csv`  | `albums_a_rechercher_Partage.csv` |
+| `data/Pipeline/albums_match_complet.csv` | `albums_match_complet_Partage.csv` |
+| `data/Pipeline/resultats_cotes.csv`      | `resultats_cotes_Partage.csv` |
+| `data/Resultats/resultats_final.csv`     | `resultats_final_Partage.csv` |
 
 Si le nom passé n'existe pas dans le dossier des playlists, le script
 affiche la liste des playlists disponibles et s'arrête sans rien écrire.
@@ -426,9 +426,9 @@ Toutes les fonctions de `utils/` sont importées directement dans le notebook.
 | Fichier | Généré par | Contenu |
 |---|---|---|
 | `data/Bibliotheque/bibliotheque.csv` + `.xlsx` | `--scan-library` | Scan des 4 racines → `{Artist, Album, Path}` (CSV + Excel à côté) |
-| `data/Ressources/albums_a_rechercher.csv` | `--match` | Albums non possédés à scraper : `{Artist, Album}` |
-| `data/Ressources/albums_match_complet.csv` | `--match` | Idem + scores fuzzy + `Path_Possede` (chemin physique de l'album le plus proche, vide si Artist_sim<90) |
-| `data/Ressources/resultats_cotes.csv` | `--search` | Résultats BM Lyon + Qobuz bruts |
+| `data/Pipeline/albums_a_rechercher.csv` | `--match` | Albums non possédés à scraper : `{Artist, Album}` |
+| `data/Pipeline/albums_match_complet.csv` | `--match` | Idem + scores fuzzy + `Path_Possede` (chemin physique de l'album le plus proche, vide si Artist_sim<90) |
+| `data/Pipeline/resultats_cotes.csv` | `--search` | Résultats BM Lyon + Qobuz bruts |
 | `data/Resultats/resultats_final.csv` + `.xlsx` | `--consolidate` | Jeu de données final consolidé (CSV + Excel à côté, voir colonnes ci-dessous) |
 
 ### Colonnes de `resultats_final.csv` / `.xlsx`
@@ -450,13 +450,13 @@ Toutes les fonctions de `utils/` sont importées directement dans le notebook.
 
 ### `data/Ressources/recherches_effectuees.xlsx`
 
-Tenu à jour manuellement. Permet de ne pas re-scraper des albums déjà traités lors des runs précédents. Colonnes attendues : `Artist`, `Album`.
-
-### `data/Ressources/Albums_musique_AAAA_MM.xlsx`
-
-Snapshot mensuel de la bibliothèque physique (Artist, Album). **Non
-utilisé par le pipeline** — sert uniquement de sauvegarde / vue
-historique de la biblio à un instant donné. Mis à jour manuellement.
+Tenu à jour manuellement. Liste les albums déjà recherchés ou possédés
+sous un autre nom que celui de la playlist Spotify. Sert de **filtre du
+pipeline** : un album dont la clé `(Artist, Album)` (après normalisation)
+y figure est exclu de `albums_a_rechercher.csv`. Colonnes attendues :
+`Artist`, `Album` (+ `recuperer` pour annoter le statut, non utilisé par
+le code). Un export `.csv` du même contenu est aussi présent dans le
+même dossier.
 
 ---
 
