@@ -282,14 +282,17 @@ Voir [documentation/Musique_Jeux_Video.md](documentation/Musique_Jeux_Video.md).
 
 ### Bibliothèque physique
 
-Accessible depuis WSL via `/mnt/m/musiques/`. Le scan combine **4 racines** avec des conventions différentes :
+Accessible depuis WSL via `/mnt/m/musiques/`. Le scan combine **7 racines** avec des conventions différentes :
 
 | Racine | Structure | Mapping |
 |---|---|---|
-| `__Autres`  | `Artiste/Album/`       | tel quel |
-| `__B.O`     | `"Album - Artiste"/` ou autre | split au dernier `-` si présent ; sinon `Artist="BO"`, `Album=nom_dossier` |
-| `__COMPILS` | `Album/`               | Artist forcé à `"Various Artists"` |
-| `__JEUX`    | `Album/`               | Artist forcé à `"BO Jeux"` |
+| `__Autres`    | `Artiste/Album/`       | tel quel |
+| `__B.O`       | `"Album - Artiste"/` ou autre | split au dernier `-` si présent ; sinon `Artist="BO"`, `Album=nom_dossier` |
+| `__COMPILS`   | `Album/`               | Artist forcé à `"Various Artists"` |
+| `__JEUX`      | `Album/`               | Artist forcé à `"BO Jeux"` |
+| `__CLASSIQUE` | `Album/[CDx/]`         | Artist forcé à `"Classique"` |
+| `__ELECTRO`   | `Album/`               | Artist forcé à `"Electro"` |
+| `__MUZAK`     | `Album/`               | Artist forcé à `"Muzak"` |
 
 Le résultat est un seul `bibliotheque.csv` (+ `.xlsx`) avec colonnes `Artist, Album, Path` (chemin physique du dossier album, propagé dans le fichier final via `Path_Possede`).
 
