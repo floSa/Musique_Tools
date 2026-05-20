@@ -275,34 +275,40 @@ def cmd_consolidate(playlist: str | None = None):
         how='left',
     ).drop(columns=['Artist', 'Album'])
 
-    def build_sources(row):
-        parts = []
+    def build_sources_qobuz(row):
         qobuz = str(row['Qobuz_URL']).strip() if pd.notna(row.get('Qobuz_URL')) else ''
+        return '' if not qobuz or qobuz == 'nan' else qobuz
+
+    def build_sources_bibli(row):
         cote = str(row['Cote']).strip() if pd.notna(row.get('Cote')) else ''
         dispo = str(row['Disponibilité']).strip() if pd.notna(row.get('Disponibilité')) else ''
-        if qobuz and qobuz != 'nan':
-            parts.append(qobuz)
-        if cote and cote != 'nan':
-            parts.append(f"{cote} ({dispo})" if dispo and dispo != 'nan' else cote)
-        return ' | '.join(parts)
+        if not cote or cote == 'nan':
+            return ''
+        if dispo and dispo != 'nan':
+            return f"{cote} ({dispo})"
+        return cote
 
-    df['Sources'] = df.apply(build_sources, axis=1)
-    df['Reference'] = df['Cote'].where(df['Cote'].notna() & (df['Cote'].astype(str) != 'nan'), '')
+    df['Sources Qobuz'] = df.apply(build_sources_qobuz, axis=1)
+    df['Sources Bibli'] = df.apply(build_sources_bibli, axis=1)
 
-    # Inclure Path_Possede s'il a été propagé par cmd_match (chemin physique
-    # de l'album possédé le plus proche, utile quand Artist_sim est haut)
+    # Path_Possede : retirer le préfixe filesystem "/mnt/m/musiques/" pour
+    # n'avoir qu'un chemin relatif lisible (ex: "__Autres/Daft Punk/Discovery")
+    if 'Path_Possede' in df.columns:
+        df['Path_Possede'] = df['Path_Possede'].astype(str).str.replace(
+            r'^/mnt/m/musiques/', '', regex=True
+        ).replace({'nan': ''})
+
+    # Ordre final demandé
     cols = [
-        'Sources', 'Reference',
+        'Sources Qobuz', 'Sources Bibli',
         'Artist_A_rechercher', 'Artist_Possede', 'Artist_sim',
         'Album_A_rechercher',  'Album_Possede',  'Album_sim',
         'Liste_albums_pos',
     ]
     if 'Path_Possede' in df.columns:
-        cols.insert(2, 'Path_Possede')  # juste après Reference
+        cols.append('Path_Possede')
     if 'Autres_albums_biblio' in df.columns:
-        # Insérer juste après Reference (ou Path_Possede si présent)
-        anchor = 'Path_Possede' if 'Path_Possede' in cols else 'Reference'
-        cols.insert(cols.index(anchor) + 1, 'Autres_albums_biblio')
+        cols.append('Autres_albums_biblio')
 
     final = df[cols]
 

@@ -456,18 +456,21 @@ une vue globale du catalogue BM Lyon pour cet artiste.
 
 ### Colonnes de `resultats_final.csv` / `.xlsx`
 
+Dans l'ordre :
+
 | Colonne | Description |
 |---|---|
-| `Sources` | Qobuz URL et/ou cote BM Lyon + disponibilité, séparés par ` \| ` |
-| `Reference` | Cote BM Lyon seule (pour localiser le CD en rayon) |
-| `Path_Possede` | Chemin physique de l'album possédé (`M:\musiques\…\Artiste\Album`) si Artist_sim≥90, vide sinon |
-| `Artist_A_rechercher` | Artiste tel qu'il apparaît dans la playlist |
-| `Artist_Possede` | Meilleur artiste correspondant trouvé en bibliothèque |
+| `Sources Qobuz` | URL Qobuz : album direct (`play.qobuz.com/album/...`) si match précis, sinon page artiste (`play.qobuz.com/artist/...`), sinon vide |
+| `Sources Bibli` | Cote BM Lyon avec disponibilité, ex: `784.DAP 32 (En rayon)` (vide si pas trouvé) |
+| `Artist_A_rechercher` | Artiste tel qu'il apparaît dans la playlist Spotify |
+| `Artist_Possede` | Meilleur artiste correspondant trouvé en bibliothèque physique |
 | `Artist_sim` | Score de similarité artiste (0–100) |
-| `Album_A_rechercher` | Album tel qu'il apparaît dans la playlist |
-| `Album_Possede` | Meilleur album correspondant trouvé en bibliothèque |
+| `Album_A_rechercher` | Album tel qu'il apparaît dans la playlist Spotify |
+| `Album_Possede` | Meilleur album correspondant trouvé en bibliothèque physique |
 | `Album_sim` | Score de similarité album (0–100, < 80 = non possédé) |
-| `Liste_albums_pos` | Tous les albums possédés de l'artiste correspondant |
+| `Liste_albums_pos` | Tous les albums possédés de l'artiste correspondant en biblio |
+| `Path_Possede` | Chemin **relatif** depuis `M:\musiques\` (ex: `__Autres/Daft Punk/Discovery`) si Artist_sim≥90, vide sinon |
+| `Autres_albums_biblio` | Autres albums du même artiste en BM Lyon avec leur cote (max 8), ex: `Album1 - Cote1, Album2 - Cote2, ...` |
 
 ### Fichiers de référence manuels
 
