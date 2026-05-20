@@ -588,6 +588,11 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
         links = page.get_by_role("link").all()
         scored_candidates = []
         seen_texts = set()
+        # On collecte AUSSI tous les auteurs rencontrés (pas filtrés par
+        # score combiné) pour pouvoir détecter "l'artiste existe à la BM
+        # Lyon mais pas cet album précis". Ex: Ghostpoet / Vicious Delicious
+        # n'est pas en biblio, mais Ghostpoet y a 5 albums.
+        authors_seen: set[str] = set()
         for link in links:
             try:
                 if not link.is_visible():
@@ -603,12 +608,22 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
                     continue
                 seen_texts.add(txt)
                 score, parsed = score_bm_lyon_candidate(txt, artist_q, album)
+                if parsed["author"]:
+                    authors_seen.add(parsed["author"])
                 if score >= BM_CANDIDATE_THRESHOLD:
                     scored_candidates.append({
                         "score": score, "text": txt, "parsed": parsed, "link": link,
                     })
             except Exception:
                 continue
+
+        # L'artiste recherché est-il représenté dans les résultats (même si
+        # l'album précis n'est pas trouvé) ? Utile pour décider de lancer la
+        # recherche "autres albums du même artiste" même sans Found.
+        artist_present_in_bm = any(
+            name_similarity(a, artist_q) >= ARTIST_MATCH_THRESHOLD
+            for a in authors_seen
+        )
 
         scored_candidates.sort(key=lambda x: x["score"], reverse=True)
         top = scored_candidates[:BM_TOP_K_CANDIDATES]
@@ -619,6 +634,15 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
                 "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
                 "Selected_text": "", "Score": 0.0, "Status": "no_candidate_above_threshold",
             })
+            # Aucun candidat sur "{artist} {album} Disque compact" ne veut
+            # pas dire que l'artiste n'est pas en biblio : il peut juste
+            # ne pas avoir CET album précis. On relance avec uniquement
+            # `{artist} Disque compact` via _find_other_bm_lyon_albums
+            # qui filtre par auteur (donc 0 clic si l'artiste n'est pas là).
+            out["Autres_albums_biblio"] = _find_other_bm_lyon_albums(
+                page, artist_q, exclude_title="",
+                debug_path=debug_path, artist_brut=artist,
+            )
             return out
 
         # Phase 2 — cliquer sur les top-K dans l'ordre, jusqu'à trouver Part-Dieu
@@ -731,6 +755,12 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
             "Score": round(top[0]["score"], 3) if top else 0.0,
             "Status": "no_part_dieu_in_top_candidates",
         })
+        # Si l'artiste existe quand même dans la BM Lyon, on liste ses albums.
+        if artist_present_in_bm:
+            out["Autres_albums_biblio"] = _find_other_bm_lyon_albums(
+                page, artist_q, exclude_title=album,
+                debug_path=debug_path, artist_brut=artist,
+            )
         return out
 
     except Exception as e:
