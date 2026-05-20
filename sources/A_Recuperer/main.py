@@ -263,8 +263,13 @@ def cmd_consolidate(playlist: str | None = None):
     df_match = pd.read_csv(in_match)
     df_resultats = pd.read_csv(in_resultats)
 
+    # On inclut Autres_albums_biblio si la colonne est présente dans
+    # resultats_cotes (générée par --search version >= refactor BM Lyon).
+    cols_from_resultats = ['Artist', 'Album', 'Cote', 'Disponibilité', 'Qobuz_URL']
+    if 'Autres_albums_biblio' in df_resultats.columns:
+        cols_from_resultats.append('Autres_albums_biblio')
     df = df_match.merge(
-        df_resultats[['Artist', 'Album', 'Cote', 'Disponibilité', 'Qobuz_URL']],
+        df_resultats[cols_from_resultats],
         left_on=['Artist_A_rechercher', 'Album_A_rechercher'],
         right_on=['Artist', 'Album'],
         how='left',
@@ -294,6 +299,10 @@ def cmd_consolidate(playlist: str | None = None):
     ]
     if 'Path_Possede' in df.columns:
         cols.insert(2, 'Path_Possede')  # juste après Reference
+    if 'Autres_albums_biblio' in df.columns:
+        # Insérer juste après Reference (ou Path_Possede si présent)
+        anchor = 'Path_Possede' if 'Path_Possede' in cols else 'Reference'
+        cols.insert(cols.index(anchor) + 1, 'Autres_albums_biblio')
 
     final = df[cols]
 

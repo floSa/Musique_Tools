@@ -28,13 +28,26 @@ def normalize(s: str) -> str:
 
 def name_similarity(a: str, b: str) -> float:
     """Similarité entre deux noms : 1.0 si égalité après normalisation,
-    sinon ratio difflib.SequenceMatcher."""
+    sinon max entre SequenceMatcher direct ET version "tokens triés".
+
+    La version tokens-triés gère l'inversion prénom/nom (catalogue BM Lyon
+    écrit souvent "Cosma, Vladimir" alors que Spotify dit "Vladimir Cosma").
+    Sans ce fallback, `SequenceMatcher.ratio("vladimir cosma", "cosma
+    vladimir") ≈ 0.50`, et l'artiste serait rejeté à tort.
+    """
     a_n, b_n = normalize(a), normalize(b)
     if not a_n or not b_n:
         return 0.0
     if a_n == b_n:
         return 1.0
-    return difflib.SequenceMatcher(None, a_n, b_n).ratio()
+    direct = difflib.SequenceMatcher(None, a_n, b_n).ratio()
+    # Match insensible à l'ordre des tokens
+    a_sorted = " ".join(sorted(a_n.split()))
+    b_sorted = " ".join(sorted(b_n.split()))
+    if a_sorted == b_sorted:
+        return 1.0
+    token_sorted = difflib.SequenceMatcher(None, a_sorted, b_sorted).ratio()
+    return max(direct, token_sorted)
 
 
 def parse_bm_lyon_title(text: str) -> dict:
@@ -61,14 +74,27 @@ def parse_bm_lyon_title(text: str) -> dict:
     # Séparateur ISBD principal : " / "
     if " / " in first_line:
         title_part, rest = first_line.split(" / ", 1)
+        # Titre : retirer mentions de support type "[Disque compact]",
+        # "[Disque microsillon]", "[enregistrement sonore]"… (utiles pour
+        # filtrer en amont, mais pas pour matcher le titre Spotify).
+        title_clean = re.sub(r"\[.*?\]", "", title_part)
+        # Retirer aussi les annotations entre parenthèses dans le titre
+        # ("(Bande originale du film)", "(Edition Deluxe)") car Spotify ne
+        # les a généralement pas exactement à l'identique.
+        title_clean = re.sub(r"\(.*?\)", "", title_clean)
+        title_clean = re.sub(r"\s+", " ", title_clean).strip()
+
         # L'auteur s'arrête au premier "." ou ";" (collaborateurs séparés par ";")
         author_part = re.split(r"[.;]", rest, maxsplit=1)[0].strip()
-        # Couper éventuels suffixes "[texte imprimé]", "[enregistrement sonore]"
+        # Retirer "[texte imprimé]" etc.
         author_part = re.sub(r"\[.*?\]", "", author_part).strip()
+        # Retirer "(groupe)", "(chanteur)", "(compositeur)"… qui suivent
+        # parfois le nom dans le catalogue BM Lyon.
+        author_part = re.sub(r"\(.*?\)", "", author_part).strip()
         # Plusieurs auteurs séparés par virgule → on garde le premier
         author_part = author_part.split(",")[0].strip()
         return {
-            "title": title_part.strip(),
+            "title": title_clean,
             "author": author_part,
             "raw": raw,
         }

@@ -349,22 +349,38 @@ Scraper basé sur **Playwright** (navigateur headless Chromium, locale `fr-FR`).
 | `get_qobuz_play_url(page, artist, album)` | Cherche l'URL Qobuz pour un album |
 | `get_qobuz_link_via_artist(page, artist, album)` | Stratégie 1 : artiste → discographie → album |
 
-**Stratégie BM Lyon :**
-1. Recherche `{Artiste} {Album} Disque compact` sur `catalogue.bm-lyon.fr`
-2. Récolte de **tous les liens** de résultat contenant "Disque compact"
-3. **Scoring strict** de chaque candidat : on parse le format ISBD
-   `Titre / Auteur. - Disque compact - Année` et on calcule
-   `score = 0.55·sim(album, titre) + 0.45·sim(artiste, auteur)`
-4. Top-K (5) candidats triés par score → on clique dans l'ordre, on extrait
-   la cote Part-Dieu sur le premier qui passe la double vérification artiste
-5. Reprend là où il s'est arrêté si le fichier de sortie existe déjà
+**Pré-traitement de l'artiste — split virgule** :
+Pour les collabs Spotify ("Ghostpoet,Paul Smith", "-M-,Jordan Cauvin,..."),
+seul l'**artiste principal** (premier avant `,`) est utilisé pour les
+recherches catalogue (sinon aucun match possible). Helper `_primary_artist`.
 
-**Stratégie Qobuz :**
-1. Priorité : recherche artiste → on score **tous** les candidats (vs `.first`),
-   match strict ≥ 0.85 sur le nom (`SequenceMatcher`) → page artiste →
-   parcours discographie (≤ 50 titres) → meilleur titre album ≥ 0.55
-2. Fallback : recherche directe `{Artiste} {Album}` → on score tous les
-   `div.album-item` et on garde le meilleur si `sim_artiste ≥ 0.85`
+**Stratégie BM Lyon (toujours exécutée)** :
+1. Recherche `{Artiste primaire} {Album} Disque compact` sur `catalogue.bm-lyon.fr`
+2. Récolte de **tous les liens** de résultat contenant "Disque compact"
+3. **Scoring strict** : parse ISBD `Titre / Auteur. - Disque compact - Année`
+   (titre et auteur nettoyés : `[Disque compact]`, `(groupe)`, etc.) →
+   `score = 0.55·sim(album, titre) + 0.45·sim(artiste, auteur)`
+4. Top-K (5) candidats → clic en ordre, double vérification artiste sur
+   page de détail :
+   - Lit `Auteur : <nom>` du label (plus fiable que le parsing du libellé)
+   - Tolère l'**inversion** prénom/nom ("Cosma Vladimir" ≡ "Vladimir Cosma")
+   - Tolère le **sous-ensemble** ("Bourvil" ⊂ "Andre Bourvil") si tokens ≥ 5 chars
+5. Si Cote Part-Dieu trouvée → on cherche aussi les **autres albums Disque compact**
+   du même artiste (max 8) avec leur cote → colonne `Autres_albums_biblio`
+6. Reprenable (état conservé dans `resultats_cotes.csv`)
+
+**Stratégie Qobuz (toujours exécutée en complément)** :
+1. Recherche artiste → score **tous** les candidats sur slug + display name
+   (cleané de "21 albums", "Suivre", etc.), match strict ≥ 0.85
+2. Si artiste matché → page artiste → parcours discographie (≤ 50 titres)
+   → meilleur titre album ≥ 0.55
+3. **Fallback artist-only** : si artiste matché mais pas l'album précis,
+   retourne `https://play.qobuz.com/artist/<id>` (utile pour les
+   recherches Qobuz capricieuses, ex: AaRON, Ghostpoet)
+4. Fallback recherche directe `{Artiste primaire} {Album}` → scoring
+   `div.album-item` (sim_artiste ≥ 0.85)
+5. Si aucun match précis ni artiste → `Qobuz_URL` **vide** (jamais d'URL
+   `/search/` polluante dans le fichier final)
 
 ### Matching strict (`utils/text_match.py`)
 
@@ -430,6 +446,13 @@ Toutes les fonctions de `utils/` sont importées directement dans le notebook.
 | `data/Pipeline/albums_match_complet.csv` | `--match` | Idem + scores fuzzy + `Path_Possede` (chemin physique de l'album le plus proche, vide si Artist_sim<90) |
 | `data/Pipeline/resultats_cotes.csv` | `--search` | Résultats BM Lyon + Qobuz bruts |
 | `data/Resultats/resultats_final.csv` + `.xlsx` | `--consolidate` | Jeu de données final consolidé (CSV + Excel à côté, voir colonnes ci-dessous) |
+
+**Nouvelle colonne** `Autres_albums_biblio` (depuis le refactor BM Lyon de mai 2026) :
+quand l'album principal est trouvé à la BM Lyon, le scraper enchaîne une
+recherche `{Artiste} Disque compact` pour lister les autres albums du même
+artiste avec leur cote, au format `"Album1 - Cote1, Album2 - Cote2, ..."`
+(max 8 albums). Permet d'orienter l'utilisateur vers le rayon physique avec
+une vue globale du catalogue BM Lyon pour cet artiste.
 
 ### Colonnes de `resultats_final.csv` / `.xlsx`
 
