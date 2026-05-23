@@ -31,7 +31,9 @@ sources/Recommandation/
 ├── expand_base.py      # Crawl en largeur : top N artistes les plus cités → artistes_liste.csv
 ├── tag_similarity.py   # Index co-occurrence des tags Last.fm (similarité graduée)
 ├── tests/
-│   └── test_engine.py  # Tests unitaires du moteur
+│   ├── test_engine.py          # Tests unitaires du moteur
+│   ├── test_loaders.py         # Tests des loaders SQLite (Last.fm, Spotify, Qobuz)
+│   └── test_tag_similarity.py  # Tests de l'index de co-occurrence
 ├── requirements.txt
 └── pyproject.toml
 ```
@@ -279,7 +281,7 @@ rien de pointu).
 dans la base de similaires (analogue à l'IDF en recherche d'information) :
 
 ```
-popularité(c) = nombre d'artistes ayant `c` dans leurs similaires (Last.fm + Spotify)
+popularité(c) = nombre d'artistes ayant `c` dans leurs similaires (Last.fm + Spotify + Qobuz)
 factor(c) = 1 / (1 + ω × log(1 + popularité(c)))
 score(c) *= factor(c)
 ```

@@ -237,3 +237,58 @@ def test_load_lastfm_tags(tmp_path):
     tags = load_lastfm_tags(db)
 
     assert tags["Daft Punk"] == ["electronic", "french house"]
+
+
+# ---------------------------------------------------------------------------
+# Robustesse : DBs corrompues / mal-formées
+#
+# Un fichier qui existe mais n'est pas une DB SQLite valide, ou une DB sans
+# la table `artists` (cas vu en pratique avec /dev/null ou un .db vide).
+# Tous les loaders doivent dégrader vers {} silencieusement (avec warning log)
+# au lieu de crasher l'appelant — c'est ce qui permet à Priorisation /
+# Recommandation de tourner même si une source est cassée.
+# ---------------------------------------------------------------------------
+
+def _make_empty_sqlite(tmp_path: Path) -> Path:
+    """Crée un fichier SQLite valide MAIS sans la table `artists`."""
+    db = tmp_path / "empty.db"
+    conn = sqlite3.connect(str(db))
+    conn.execute("CREATE TABLE other (x INTEGER)")
+    conn.commit()
+    conn.close()
+    return db
+
+
+def _make_garbage_file(tmp_path: Path) -> Path:
+    """Crée un fichier qui n'est pas une DB SQLite du tout."""
+    p = tmp_path / "garbage.db"
+    p.write_bytes(b"this is not sqlite, just random bytes \x00\x01\x02")
+    return p
+
+
+@pytest.mark.parametrize("loader", [
+    load_lastfm_similar,
+    load_lastfm_tags,
+    load_spotify_similar,
+    load_spotify_id_index,
+    load_qobuz_similar,
+    load_qobuz_portraits,
+])
+def test_loaders_return_empty_on_missing_table(tmp_path, loader):
+    """DB SQLite valide mais sans la table `artists` → dict vide, pas de crash."""
+    db = _make_empty_sqlite(tmp_path)
+    assert loader(db) == {}
+
+
+@pytest.mark.parametrize("loader", [
+    load_lastfm_similar,
+    load_lastfm_tags,
+    load_spotify_similar,
+    load_spotify_id_index,
+    load_qobuz_similar,
+    load_qobuz_portraits,
+])
+def test_loaders_return_empty_on_garbage_file(tmp_path, loader):
+    """Fichier qui n'est pas du SQLite → dict vide, pas de crash."""
+    db = _make_garbage_file(tmp_path)
+    assert loader(db) == {}

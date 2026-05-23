@@ -268,16 +268,35 @@ def history_minutes(df_history: pd.DataFrame) -> dict[str, float]:
     return (df_history.groupby('artist')['ms_played'].sum() / 60000).to_dict()
 
 
+def _safe_select(db_path: Path, query: str) -> list[tuple]:
+    """Ouvre `db_path`, exécute `query`, ferme. Retourne `[]` (et logue un
+    warning) si le fichier n'existe pas, n'est pas une DB SQLite valide,
+    ou ne contient pas la table attendue.
+
+    But : qu'un service appelant (Priorisation, Recommandation) ne crashe
+    jamais sur une DB absente / corrompue / vide — il dégrade silencieusement.
+    On logue pour ne pas masquer un vrai problème de données.
+    """
+    if not db_path.exists():
+        return []
+    try:
+        conn = sqlite3.connect(str(db_path))
+        try:
+            return conn.execute(query).fetchall()
+        finally:
+            conn.close()
+    except sqlite3.DatabaseError as e:
+        logger.warning("DB %s illisible (%s) → traitée comme vide", db_path, e)
+        return []
+
+
 def load_lastfm_similar(db_path: Path) -> dict[str, list[dict]]:
     """Retourne {artist: [{name, match: float, rank: int}, ...]} depuis la DB SQLite."""
-    if not db_path.exists():
-        return {}
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.execute(
-        "SELECT source_artist, similar_artists FROM artists WHERE status='success'"
-    )
     result = {}
-    for src, sim_json in cur.fetchall():
+    for src, sim_json in _safe_select(
+        db_path,
+        "SELECT source_artist, similar_artists FROM artists WHERE status='success'",
+    ):
         try:
             sim = json.loads(sim_json) if sim_json else []
             result[src] = [
@@ -291,26 +310,21 @@ def load_lastfm_similar(db_path: Path) -> dict[str, list[dict]]:
             ]
         except (json.JSONDecodeError, ValueError, TypeError):
             continue
-    conn.close()
     return result
 
 
 def load_lastfm_tags(db_path: Path) -> dict[str, list[str]]:
     """Retourne {artist: [tags]} depuis la DB SQLite."""
-    if not db_path.exists():
-        return {}
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.execute(
-        "SELECT source_artist, tags FROM artists WHERE status='success'"
-    )
     result = {}
-    for src, tags_json in cur.fetchall():
+    for src, tags_json in _safe_select(
+        db_path,
+        "SELECT source_artist, tags FROM artists WHERE status='success'",
+    ):
         try:
             tags = json.loads(tags_json) if tags_json else []
             result[src] = tags if isinstance(tags, list) else []
         except (json.JSONDecodeError, TypeError):
             result[src] = []
-    conn.close()
     return result
 
 
@@ -325,15 +339,12 @@ def load_spotify_id_index(db_path: Path) -> dict[str, str]:
     En cas de doublons (peu probable car les IDs Spotify sont uniques par artiste),
     la première occurrence rencontrée est conservée.
     """
-    if not db_path.exists():
-        return {}
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.execute(
-        "SELECT source_artist, source_artist_id, similar_artists FROM artists "
-        "WHERE status = 'success'"
-    )
     index: dict[str, str] = {}
-    for source_artist, source_id, sim_json in cur.fetchall():
+    for source_artist, source_id, sim_json in _safe_select(
+        db_path,
+        "SELECT source_artist, source_artist_id, similar_artists FROM artists "
+        "WHERE status = 'success'",
+    ):
         # Source direct
         if (
             isinstance(source_artist, str)
@@ -353,20 +364,16 @@ def load_spotify_id_index(db_path: Path) -> dict[str, str]:
             if isinstance(r, dict) and "name" in r and "id" in r:
                 if isinstance(r["id"], str) and len(r["id"]) == 22:
                     index.setdefault(r["name"], r["id"])
-    conn.close()
     return index
 
 
 def load_spotify_similar(db_path: Path) -> dict[str, list[dict]]:
     """Retourne {artist: [{name, rank}, ...]} depuis la DB SQLite Spotify."""
-    if not db_path.exists():
-        return {}
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.execute(
-        "SELECT source_artist, similar_artists FROM artists WHERE status = 'success'"
-    )
     result: dict[str, list[dict]] = {}
-    for src, sim_json in cur.fetchall():
+    for src, sim_json in _safe_select(
+        db_path,
+        "SELECT source_artist, similar_artists FROM artists WHERE status = 'success'",
+    ):
         try:
             related = json.loads(sim_json) if sim_json else []
         except (json.JSONDecodeError, TypeError):
@@ -383,20 +390,16 @@ def load_spotify_similar(db_path: Path) -> dict[str, list[dict]]:
             for i, r in enumerate(related)
             if isinstance(r, dict) and "name" in r
         ]
-    conn.close()
     return result
 
 
 def load_qobuz_similar(db_path: Path) -> dict[str, list[dict]]:
     """Retourne {artist: [{name, rank}, ...]} depuis la DB SQLite Qobuz."""
-    if not db_path.exists():
-        return {}
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.execute(
-        "SELECT source_artist, similar_artists FROM artists WHERE status = 'success'"
-    )
     result: dict[str, list[dict]] = {}
-    for src, sim_json in cur.fetchall():
+    for src, sim_json in _safe_select(
+        db_path,
+        "SELECT source_artist, similar_artists FROM artists WHERE status = 'success'",
+    ):
         try:
             related = json.loads(sim_json) if sim_json else []
         except (json.JSONDecodeError, TypeError):
@@ -411,7 +414,6 @@ def load_qobuz_similar(db_path: Path) -> dict[str, list[dict]]:
             for i, r in enumerate(related)
             if isinstance(r, dict) and "name" in r
         ]
-    conn.close()
     return result
 
 
@@ -420,15 +422,14 @@ def load_qobuz_portraits(db_path: Path) -> dict[str, str]:
 
     Utile pour afficher la bio dans l'UI en complément du score.
     """
-    if not db_path.exists():
-        return {}
-    conn = sqlite3.connect(str(db_path))
-    cur = conn.execute(
-        "SELECT source_artist, portrait FROM artists WHERE status = 'success'"
-    )
-    result = {row[0]: (row[1] or "") for row in cur.fetchall() if row[1]}
-    conn.close()
-    return result
+    return {
+        row[0]: (row[1] or "")
+        for row in _safe_select(
+            db_path,
+            "SELECT source_artist, portrait FROM artists WHERE status = 'success'",
+        )
+        if row[1]
+    }
 
 
 # ---------------------------------------------------------------------------
