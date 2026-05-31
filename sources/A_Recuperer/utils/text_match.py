@@ -50,6 +50,33 @@ def name_similarity(a: str, b: str) -> float:
     return max(direct, token_sorted)
 
 
+def artist_name_matches(found: str, target: str, allow_subset: bool = False) -> bool:
+    """True si `found` correspond à `target` au seuil `ARTIST_MATCH_THRESHOLD`.
+
+    Logique de décision « ce nom est-il bien l'artiste cible ? » extraite ici
+    pour être (a) réutilisée à l'identique par l'album principal ET par la
+    liste des autres albums du même artiste, (b) testable sans Playwright.
+
+    `allow_subset` : tolère le cas où `found` (nom tel qu'écrit dans le
+    catalogue BM Lyon) est un sous-ensemble strict de `target` (nom Spotify),
+    ex. "Bourvil" ⊂ "Andre Bourvil". On exige des tokens ≥ 5 caractères pour
+    éviter les faux positifs type "Air" ⊂ "Air Supply". À n'activer que sur la
+    source la plus fiable (le champ "Auteur :" de la fiche détail), pas sur un
+    `<h1>` ou un libellé brut.
+    """
+    if not found or not target:
+        return False
+    if name_similarity(found, target) >= ARTIST_MATCH_THRESHOLD:
+        return True
+    if allow_subset:
+        f_tokens = set(normalize(found).split())
+        t_tokens = set(normalize(target).split())
+        if (f_tokens and t_tokens and f_tokens.issubset(t_tokens)
+                and all(len(tok) >= 5 for tok in f_tokens)):
+            return True
+    return False
+
+
 def parse_bm_lyon_title(text: str) -> dict:
     """Parse un libellé de résultat catalogue.bm-lyon.fr (format ISBD).
 

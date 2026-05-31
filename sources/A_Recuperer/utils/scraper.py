@@ -213,18 +213,35 @@ def _find_other_bm_lyon_albums(page, artist_q: str, exclude_title: str,
                 if not t_norm or t_norm == exclude_norm or t_norm in seen_titles:
                     continue
                 seen_titles.add(t_norm)
-                candidates.append({"title": clean_title, "link": link})
+                candidates.append({
+                    "title": clean_title, "link": link,
+                    "author": parsed["author"],
+                })
                 if len(candidates) >= max_extra:
                     break
             except Exception:
                 continue
 
-        # Pour chaque candidat, cliquer et lire la cote Part-Dieu
+        # Pour chaque candidat : cliquer, RE-VÉRIFIER l'auteur sur la fiche,
+        # puis seulement lire la cote Part-Dieu. La re-vérification est
+        # indispensable — le filtre amont laisse passer les candidats sans
+        # auteur parsable dans le libellé de liste ; sans ce garde-fou, des
+        # albums d'autres artistes finissent dans Autres_albums_biblio.
         for cand in candidates:
             try:
                 cand["link"].click()
                 time.sleep(2)
                 content_text = page.locator("body").inner_text()
+                if not _bm_lyon_detail_artist_matches(
+                    page, content_text, artist_q, cand.get("author", "")
+                ):
+                    print(f"   [BM-extras] rejet (auteur != {artist_q!r}) : {cand['title']!r}")
+                    page.go_back()
+                    try:
+                        page.wait_for_selector("a", timeout=10000)
+                    except Exception:
+                        time.sleep(2)
+                    continue
                 if "Part-Dieu" in content_text:
                     cotes, _ = _extract_part_dieu_cote(content_text)
                     if cotes:
@@ -655,48 +672,18 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
                 time.sleep(3)
                 content_text = page.locator("body").inner_text()
 
-                # Re-vérification stricte de l'artiste sur la page de détail.
-                # On compare contre l'artiste primaire (post-split virgule).
-                # Idéalement on lit le champ "Auteur :" de la page (label
-                # explicite du catalogue), avec fallback sur le parsing ISBD
-                # du libellé du lien puis sur le h1.
-                page_artist_ok = False
+                # Re-vérification stricte de l'artiste sur la page de détail
+                # (auteur fiche → auteur parsé → h1). Mutualisée avec la liste
+                # des « autres albums » via _bm_lyon_detail_artist_matches.
+                # detail_author est conservé pour renseigner Artiste_Bibliotheque.
                 detail_author = _extract_bm_lyon_detail_author(content_text)
-                sim_detail = name_similarity(detail_author, artist_q) if detail_author else 0.0
-                if detail_author:
-                    page_artist_ok = sim_detail >= ARTIST_MATCH_THRESHOLD
-                    # Fallback : sur la page de détail (contexte déjà filtré
-                    # par la recherche initiale), on accepte le cas où le nom
-                    # BM Lyon est un sous-ensemble strict de l'artiste Spotify
-                    # (ex: "Bourvil" ⊂ "Andre Bourvil"). On exige des tokens
-                    # ≥ 5 chars pour éviter "Air" ⊂ "Air Supply".
-                    if not page_artist_ok:
-                        d_tokens = set(normalize(detail_author).split())
-                        a_tokens = set(normalize(artist_q).split())
-                        if (d_tokens and a_tokens and d_tokens.issubset(a_tokens)
-                                and all(len(t) >= 5 for t in d_tokens)):
-                            page_artist_ok = True
-                            sim_detail = 0.99  # marqueur pour le log
-                sim_parsed = name_similarity(parsed["author"], artist_q) if parsed["author"] else 0.0
-                if not page_artist_ok and parsed["author"]:
-                    page_artist_ok = sim_parsed >= ARTIST_MATCH_THRESHOLD
-                h1_text = ""
-                sim_h1 = 0.0
-                if not page_artist_ok:
-                    try:
-                        h1 = page.locator("h1").first
-                        h1_text = h1.inner_text() if h1.count() else ""
-                        sim_h1 = name_similarity(h1_text, artist_q)
-                        page_artist_ok = sim_h1 >= ARTIST_MATCH_THRESHOLD
-                    except Exception:
-                        pass
+                page_artist_ok = _bm_lyon_detail_artist_matches(
+                    page, content_text, artist_q, parsed["author"]
+                )
                 if not page_artist_ok:
                     print(f"   [BM] Artist mismatch: target={artist_q!r}; "
-                          f"detail_author={detail_author!r}(sim={sim_detail:.2f}); "
-                          f"parsed_author={parsed['author']!r}(sim={sim_parsed:.2f}); "
-                          f"h1={h1_text[:60]!r}(sim={sim_h1:.2f})")
-
-                if not page_artist_ok:
+                          f"detail_author={detail_author!r}; "
+                          f"parsed_author={parsed['author']!r}")
                     page.go_back()
                     try:
                         page.wait_for_selector("a", timeout=10000)
