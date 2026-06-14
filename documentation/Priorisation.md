@@ -85,7 +85,7 @@ cd sources/Priorisation
 uv run streamlit run app.py
 ```
 
-L'interface s'ouvre sur [http://localhost:8501](http://localhost:8501).
+L'interface s'ouvre sur [http://localhost:8509](http://localhost:8509).
 
 ---
 

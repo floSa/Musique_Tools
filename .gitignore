@@ -25,3 +25,6 @@ data/Musique_Jeux_Video/*
 *.wav
 *.ogg
 *.m4a
+
+# Junk Windows (Alternate Data Stream)
+*:Zone.Identifier
