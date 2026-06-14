@@ -3,6 +3,9 @@ name = "musique-tools"
 version = "0.1.0"
 description = "Outils de gestion musicale : analyse Spotify, artistes similaires, recherche d'albums"
 requires-python = ">=3.12"
+dependencies = [
+    "streamlit>=1.58.0",
+]
 
 # Chaque service gère son propre venv :
 #   cd sources/Playlists_Spotify  && uv venv .venv --python 3.12 && uv pip install -r requirements.txt
