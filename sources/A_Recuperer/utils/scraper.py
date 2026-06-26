@@ -14,6 +14,7 @@ from playwright.sync_api import sync_playwright
 
 from .text_match import (
     ARTIST_MATCH_THRESHOLD,
+    artist_name_matches,
     name_similarity,
     normalize,
     parse_bm_lyon_title,
@@ -306,6 +307,40 @@ def _extract_bm_lyon_detail_author(content_text: str) -> str:
     s = s.split(",")[0].strip()
     # Retirer points/tirets parasites en fin
     return s.rstrip(".,;:- ").strip()
+
+
+def _bm_lyon_detail_artist_matches(page, content_text: str, target_artist: str,
+                                   parsed_author: str = "") -> bool:
+    """Re-vérifie sur la fiche détail BM Lyon que l'album est bien de `target_artist`.
+
+    Trois sources, par fiabilité décroissante :
+
+    1. le champ ``Auteur :`` de la fiche (label explicite du catalogue) — on
+       tolère le sous-ensemble strict ("Bourvil" ⊂ "Andre Bourvil") via
+       ``allow_subset`` car c'est la source la plus fiable ;
+    2. l'auteur parsé du libellé ISBD du lien de résultat (``parsed_author``) ;
+    3. en dernier recours, le ``<h1>`` de la page.
+
+    Garde-fou indispensable : le filtre amont (liste de résultats) laisse
+    passer les candidats dont le libellé n'expose pas d'auteur parsable ; sans
+    cette re-vérification au clic, des albums d'autres artistes finissent en
+    ``Found`` / ``Autres_albums_biblio``. C'est la fonction que le refactor
+    3b7054d référençait sans la définir (NameError silencieusement avalé par
+    les ``try/except`` appelants → matching BM Lyon totalement HS).
+    """
+    detail_author = _extract_bm_lyon_detail_author(content_text)
+    if detail_author and artist_name_matches(detail_author, target_artist, allow_subset=True):
+        return True
+    if parsed_author and artist_name_matches(parsed_author, target_artist):
+        return True
+    try:
+        h1 = page.locator("h1").first
+        h1_text = h1.inner_text() if h1.count() else ""
+        if h1_text and artist_name_matches(h1_text, target_artist):
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def _extract_part_dieu_cote(content_text: str) -> tuple[list[str], list[str]]:

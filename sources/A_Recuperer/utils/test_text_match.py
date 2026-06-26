@@ -5,6 +5,7 @@ Lancement :
     python3 -m pytest test_text_match.py -q
     # ou simplement : python3 test_text_match.py
 """
+import ast
 import sys
 from pathlib import Path
 
@@ -16,6 +17,36 @@ from text_match import (
     name_similarity,
     parse_bm_lyon_title,
 )
+
+
+# ---------------------------------------------------------------------------
+# Garde-fou anti-régression : aucune fonction appelée sans être définie dans
+# scraper.py. Cause du bug "biblio catastrophique" (commit 3b7054d) :
+# `_bm_lyon_detail_artist_matches` était appelée mais jamais définie ; le
+# NameError était avalé par les `try/except`, donc 100% des albums BM Lyon
+# étaient rejetés en silence. On vérifie par AST (sans importer Playwright).
+# ---------------------------------------------------------------------------
+
+def test_scraper_no_phantom_function_calls():
+    import builtins
+    src = (Path(__file__).parent / "scraper.py").read_text(encoding="utf-8")
+    tree = ast.parse(src)
+    defined = {n.name for n in ast.walk(tree)
+               if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    imported = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom):
+            imported |= {a.asname or a.name for a in n.names}
+        elif isinstance(n, ast.Import):
+            imported |= {(a.asname or a.name).split(".")[0] for a in n.names}
+    # noms assignés au niveau module/local (variables qui pourraient être des callables)
+    assigned = {t.id for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                for t in n.targets if isinstance(t, ast.Name)}
+    known = defined | imported | assigned | set(dir(builtins))
+    called = {n.func.id for n in ast.walk(tree)
+              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    phantom = sorted(called - known)
+    assert not phantom, f"Fonctions appelées mais jamais définies dans scraper.py : {phantom}"
 
 
 # ---------------------------------------------------------------------------
