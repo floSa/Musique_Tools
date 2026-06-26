@@ -235,6 +235,39 @@ PLAYLIST_FILTER=Partage uv run python main.py --consolidate
 # → data/Resultats/resultats_final_Partage.xlsx
 ```
 
+#### ⚠️ Re-scraper après un correctif du matching
+
+`--search` **saute les couples (Artist, Album) déjà présents** dans
+`resultats_cotes_<playlist>.csv`. Donc relancer `--search` sur un fichier
+existant ne re-traite rien. Pour profiter d'un correctif du scraper (matching
+BM Lyon, sélection d'artiste Qobuz…), il faut **écarter l'ancien fichier**
+d'abord :
+
+```bash
+mv data/Pipeline/resultats_cotes_Partage.csv /tmp/
+PLAYLIST_FILTER=Partage HEADLESS=false uv run python main.py --search   # visible pour valider le DOM
+PLAYLIST_FILTER=Partage uv run python main.py --consolidate
+```
+
+👉 Valider d'abord sur la plus petite playlist (`Partage`) en `HEADLESS=false`
+avant de lancer les gros runs (Zen, La_French = plusieurs heures).
+
+Pour **rafraîchir uniquement `Autres_albums_biblio`** (autres albums du même
+artiste à la BM Lyon) sans tout re-scraper :
+
+```bash
+uv run python refresh_autres_albums.py --dry-run --playlist Partage   # estime, sans réseau
+uv run python refresh_autres_albums.py --playlist Partage             # applique (--max-extra 12 par défaut)
+```
+
+**Réglages du matching** ([utils/text_match.py](sources/A_Recuperer/utils/text_match.py),
+[utils/scraper.py](sources/A_Recuperer/utils/scraper.py)) : seuil artiste
+`ARTIST_MATCH_THRESHOLD = 0.85` (durci à `0.95` pour les noms ≤ 6 lettres afin
+d'éviter les quasi-homographes type *Christophe* / *Christopher*), préférence
+au match **exact** côté Qobuz, et scroll lazy-load pour récolter les résultats
+sous la ligne de flottaison (« on ne descend pas assez »). Le nombre d'autres
+albums listés par artiste est plafonné à `max_extra = 12`.
+
 ---
 
 ### Service : Recommandation
