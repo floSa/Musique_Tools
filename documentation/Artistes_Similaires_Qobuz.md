@@ -18,6 +18,69 @@ d'apparition est disponible.
 
 ---
 
+## Schéma fonctionnel
+
+```mermaid
+flowchart TD
+  input[/"artistes_liste.csv (colonne Artist)"/]
+  db[/"similar_artists.db (table artists)"/]
+  csv[/"output_related.csv"/]
+  qobuz(["www.qobuz.com (Playwright)"])
+
+  input --> reprise["Charger liste + reprise"]
+  db -.->|"get_processed_artists()"| reprise
+  reprise --> boucle["Boucle artistes restants"]
+
+  subgraph rech["Recherche artiste source"]
+    boucle --> search["Recherche /search/artists/{nom}"]
+    search --> qobuz
+    qobuz --> collect["Collecter liens /interpreter/{slug}/{id}"]
+  end
+
+  subgraph match["Matching strict"]
+    collect --> score["Scorer chaque candidat (slug + nom affiché)"]
+    score --> decision{"Score >= 0.85 ?"}
+  end
+
+  decision -->|"Non"| saveempty["save_result vide (status success)"]
+  saveempty --> db
+  saveempty --> boucle
+
+  subgraph extract["Extraction page artiste"]
+    decision -->|"Oui"| pageart["goto page /interpreter/{slug}/{id}"]
+    pageart --> qobuz
+    qobuz --> portrait["Extraire portrait (#catalog-heading__text)"]
+    portrait --> similar["Extraire similaires (section 'Artistes similaires')"]
+  end
+
+  subgraph persist["Persistance"]
+    similar --> save["save_result(artiste, id, similaires, portrait)"]
+    save --> db
+    save --> boucle
+  end
+
+  subgraph exp["Export (à la demande)"]
+    db -.->|"get_all_results()"| export["export_to_csv.py"]
+    export --> csv
+  end
+```
+
+### Détail des actions
+1. **Charger liste + reprise** — `main()` (main.py) lit `data/Ressources/artistes_liste.csv` via pandas (`df_input["Artist"].dropna().unique()`), puis interroge `Database.get_processed_artists()` (database.py) qui renvoie le set de toutes les `source_artist` déjà présentes en table `artists`. `remaining = all_artists − processed`, ce qui permet de reprendre exactement où le scraper s'est arrêté (un Ctrl+C puis relance ne retraite pas les artistes déjà enregistrés). Sortie immédiate si `remaining` est vide.
+2. **Boucle artistes restants** — boucle Playwright (`sync_playwright`) avec sessions navigateur rotatives : chaque navigateur Chromium (stealth, user-agent Windows/Chrome 120, viewport 1920×1080, locale fr-FR) traite entre 15 et 25 artistes (`session_limit = random.randint(15, 25)`) avant restart, avec délais aléatoires de 2–5 s entre artistes. En cas de crash réseau, `wait_for_internet()` attend le rétablissement (ping 8.8.8.8:53).
+3. **Recherche /search/artists/{nom}** — `find_artist_page()` navigue (`page.goto`, `wait_until="domcontentloaded"`, timeout 20 s) vers `https://www.qobuz.com/fr-fr/search/artists/{q}` (nom URL-encodé). On utilise `www.qobuz.com` (miroir SEO public, HTML rendu serveur) et non `play.qobuz.com` (SPA login-walled). Le bandeau cookies est fermé (`#didomi-notice-agree-button`).
+4. **Collecter liens /interpreter/** — `page.evaluate` ramasse tous les `a[href*='/interpreter/']`, dédoublonne par href, et pour chacun extrait le nom affiché (attribut `title` > `span.name`/`.artist-name`/`.catalog-heading__name` > textContent). Input → output : nom cible → liste de candidats `{href, displayName}`.
+5. **Scorer chaque candidat** — pour chaque href, la regex `INTERPRETER_RE = /interpreter/([^/]+)/(\d+)` extrait `slug` et `qobuz_id`. Le score = `max(name_similarity(displayName, cible), name_similarity(slug→espaces, cible))`, où `name_similarity` normalise en ASCII/minuscules (`normalize_text`) puis applique `difflib.SequenceMatcher().ratio()`, avec score forcé à 1.0 si égalité exacte après normalisation. On garde le candidat au meilleur score.
+6. **Décision Score >= 0.85 ?** — seuil strict `NAME_MATCH_THRESHOLD = 0.85` (vs ~0.5 dans l'ancien `check_artist_presence` qui matchait dès 1 token commun et confondait les homonymes type "Worakls"/"Kevin Worakls"). Sous le seuil → artiste considéré non trouvé.
+7. **save_result vide (non trouvé)** — si pas de match strict, `db.save_result(artist, "", [], portrait="")` enregistre quand même une entrée `status='success'` (id vide, similaires `[]`) pour ne pas retomber dessus à la reprise ; l'artiste est ajouté à `processed`.
+8. **goto page /interpreter/{slug}/{id}** — `extract_artist_data()` navigue vers l'URL artiste retenue (préfixée `https://www.qobuz.com` si relative), `domcontentloaded`, timeout 20 s, ferme le bandeau cookies. En cas de timeout, retourne `{portrait: "", similar: []}`.
+9. **Extraire portrait** — `page.locator("#catalog-heading__text").first` (un **id**) ; texte récupéré via `text_content()` (ignore la visibilité, donc capte le texte tronqué CSS par la checkbox `#expand-toggle`/"Lire la suite" sans clic), puis whitespaces compressés (`re.sub(r"\s+", " ")`). Champ vide si l'artiste n'a pas de bio publique.
+10. **Extraire similaires** — `page.evaluate` localise le `h3.catalog-heading__subtitle` dont le texte commence par "artistes similaires", remonte au `.catalog-heading` parent le plus proche (scope strict pour éviter d'autres carrousels), puis liste les `a.catalog-heading__item` ; pour chacun, `span.catalog-heading__name` (nom) et href → `slug`/`qobuz_id` via `INTERPRETER_RE`, avec un `rank` séquentiel (1 = le plus proche). Qobuz expose ~5 à ~80 similaires.
+11. **save_result (succès)** — `db.save_result(artist, qobuz_id, similar_dicts, portrait)` fait un `INSERT … ON CONFLICT(source_artist) DO UPDATE` dans la table `artists(source_artist PK, source_artist_id, similar_artists, portrait, tags='[]', status='success')`. `similar_artists` est sérialisé en JSON `[{"name", "id", "rank"}, …]`. Commit immédiat ; artiste ajouté à `processed`.
+12. **export_to_csv.py (à la demande)** — script séparé : `Database.get_all_results()` (lignes `status='success'`) → DataFrame pandas écrit en `data/Artistes_Similaires_Qobuz/output_related.csv` avec colonnes `Source_Artist`, `Source_Artist_ID`, `Related_Data_Raw` (liste `[{"name", "id"}]` désérialisée du JSON), `Portrait`. La DB SQLite reste la source de vérité ; le CSV n'est qu'un dérivé pour lecture humaine.
+
+---
+
 ## Pourquoi `www.qobuz.com` et pas `play.qobuz.com` ?
 
 `play.qobuz.com` est la SPA (web app) de lecture, **réservée aux abonnés**.

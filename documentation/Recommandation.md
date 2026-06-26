@@ -18,6 +18,103 @@ les artistes déjà entendus ponctuellement dans l'historique restent valides
 
 ---
 
+## Schéma fonctionnel
+
+```mermaid
+flowchart TD
+  subgraph SRC["Chargement des sources (data_provider.py, @st.cache_data)"]
+    HIST[/"data/Historique_Spotify/*.json"/]
+    LFM[/"Artistes_Similaires_LastFM/similar_artists.db"/]
+    SPT[/"Artistes_Similaires_Spotify/similar_artists.db"/]
+    QBZ[/"Artistes_Similaires_Qobuz/similar_artists.db"/]
+    BIB[/"data/Bibliotheque/bibliotheque.csv"/]
+    PLY[/"data/Playlists_Spotify/*.csv"/]
+    FBK[/"data/Recommandation/feedback.csv"/]
+  end
+
+  subgraph SEEDS["Construction des seeds"]
+    MAN["Seeds manuels (poids = 1.0)"]
+    HW["history_weights()<br/>top N historique pondéré β"]
+    SEEDSET["seeds : dict {artiste: poids}"]
+    UNK{"Seed sans similaires<br/>en base ?"}
+  end
+
+  subgraph EXC["Exclusions"]
+    EXSET["excluded = biblio ∪ playlists ∪ dislikes"]
+  end
+
+  subgraph AGG["Agrégation des similaires (recommend())"]
+    LOOP["Pour chaque seed : cumul des contributions<br/>Last.fm + Spotify + Qobuz"]
+    OWN{"Candidat possédé /<br/>playlisté / disliké ?"}
+  end
+
+  subgraph SCORE["Scoring + boost"]
+    BASE["score de base pondéré α (normalisé Σ poids_seed)"]
+    POP["pénalité popularité ω"]
+    BOOST["boost historique γ"]
+    GENRE{"Filtre genre<br/>OR / AND ?"}
+    MMR["diversify_mmr() (λ)"]
+  end
+
+  subgraph OUT["Feedback & affichage"]
+    UI(["UI Streamlit : tableau + détails"])
+    VOTE["👍 / 👎 → feedback.py"]
+    LOG["session_log.save_session()"]
+  end
+
+  HIST --> HW
+  MAN --> SEEDSET
+  HW --> SEEDSET
+  SEEDSET --> UNK
+  UNK -- "oui : ignoré (warning)" --> UI
+  UNK -- "non" --> LOOP
+
+  BIB --> EXSET
+  PLY --> EXSET
+  FBK --> EXSET
+
+  LFM --> LOOP
+  SPT --> LOOP
+  QBZ --> LOOP
+  LOOP --> OWN
+  EXSET --> OWN
+  OWN -- "oui : écarté" --> X[" "]
+  OWN -- "non" --> BASE
+  BASE --> POP --> BOOST --> GENRE
+  GENRE -- "tag absent : écarté" --> X
+  GENRE -- "passe" --> MMR
+  MMR --> UI
+  UI --> VOTE
+  VOTE -. "dislike réinjecté en exclusion" .-> EXSET
+  UI --> LOG
+```
+
+### Détail des actions
+
+1. **Chargement des sources** — `data_provider.py` charge (toutes `@st.cache_data`) : l'historique d'écoute (`get_history` → `load_history`, fusionne les deux schémas d'export Spotify `artistName/endTime/msPlayed` et `master_metadata_album_artist_name/ts/ms_played`), les trois DB SQLite de similaires (`load_lastfm_similar` → `{artiste:[{name,match,rank}]}`, `load_spotify_similar`/`load_qobuz_similar` → `{artiste:[{name,rank}]}`, lues via `_safe_select` qui dégrade silencieusement une DB absente/corrompue en `[]`), les tags Last.fm (`load_lastfm_tags`, top 5 de `gettoptags`), les portraits Qobuz, l'index `nom→spotify_id` (player embed), la popularité (`compute_artist_popularity` = nb de citations comme similaire, Last.fm+Spotify+Qobuz) et l'index de co-occurrence des tags (`tag_similarity.build_tag_cooccurrence`, cosinus/Ochiai). Sortie : structures en mémoire consommées par `recommend()`.
+
+2. **Construction des seeds** — `app.py` fusionne les **seeds manuels** (multiselect sur le pool `biblio ∪ playlists`, poids = 1.0) et les **seeds historiques** : `history_weights(history_df, recent_months, recent_weight)` calcule `poids = β × poids_récent + (1-β) × poids_total` (minutes normalisées par le max de chaque période), dont on garde le top `n_history_seeds`. Résultat : `seeds : dict{artiste → poids ∈ [0,1]}`. Un seed n'ayant **aucun** similaire dans les trois bases est listé dans un avertissement et n'apporte rien (pas de scraping à la volée).
+
+3. **Exclusions** — `get_excluded()` = bibliothèque physique (`bibliotheque.csv`, colonne `Artist`) ∪ artistes des playlists (`Playlists_Spotify/*.csv`, featurings split sur la virgule). `app.py` y ajoute à chaque rerun les **dislikes** (`feedback.get_disliked()`, non caché pour réactivité) → `excluded = excluded_static | disliked`. L'historique n'est **jamais** exclu : c'est un signal positif (boost, action 6). Sortie : `set` d'artistes à écarter.
+
+4. **Agrégation des similaires** — dans `recommend()`, pour chaque `seed` et chaque source, on cumule par candidat : `lastfm_total += poids_seed × match` ; `spotify_total += poids_seed × spotify_rank_to_score(rang)` (linéaire : rang 1→1.0, rang 40→0.025) ; `qobuz_total += poids_seed × qobuz_rank_to_score(rang)` (rang 1→1.0, plafond `QOBUZ_MAX_RANK=50`). Chaque seed distinct citant le candidat est mémorisé dans `citing_seeds` (→ `citations`). La **somme** sur les seeds produit l'effet "souvent cité" recherché.
+
+5. **Filtre d'exclusion** — les candidats dont la forme normalisée (`normalize_artist`, casse/espaces) tombe dans `excluded` sont retirés du dict de candidats avant scoring.
+
+6. **Score de base, pénalité et boost** — pour chaque candidat restant : `base = (α_lfm·lastfm_total + α_spt·spotify_total + α_qbz·qobuz_total) / Σ poids_seed`, où `α_spt = max(0, 1 − α_lfm − α_qbz)` est déduit (score moyen par seed, comparable entre runs). Puis **pénalité de popularité** si `ω>0` : `base *= 1/(1 + ω·log(1+popularité))` (`popularity_penalty_factor`, dampe les artistes génériques cités partout). Puis **boost historique** si `γ>0` et minutes écoutées > 0 : `score = base × (1 + γ·min(1, minutes/60))` (plafond `HISTORY_BOOST_CAP_MIN=60`).
+
+7. **Filtre genre** — si des genres sont sélectionnés, le candidat est conservé selon ses tags Last.fm : mode **OR** (au moins un tag) ou **AND** (tous les groupes), éventuellement étendus aux tags voisins via `tag_similarity.expand_genre_filter` quand `genre_expansion_threshold < 1.0`. Un candidat sans tags est exclu dès qu'un filtre est actif.
+
+8. **Tri et diversification MMR** — les `Recommendation` sont triées par score décroissant ; si `diversity_weight (λ) > 0`, `diversify_mmr()` re-classe gloutonnement un pool de `max(n×5, 30)` candidats via `mmr(c) = λ·score_normalisé − (1−λ)·max_j sim_tags(c, déjà sélectionnés)` (soft Jaccard via l'index de co-occurrence si fourni, sinon Jaccard binaire). Sortie : liste tronquée à `n_results`.
+
+9. **Affichage UI** — `app.py` mémorise les recos dans `st.session_state` (un clic feedback ne relance pas le calcul) et affiche un tableau (score, citations, sous-scores Last.fm/Spotify/Qobuz, "déjà écouté", minutes, top 3 tags) plus, par reco, les seeds déclencheurs (`citing_seeds`), le portrait Qobuz, des liens Spotify/Last.fm/YouTube et l'iframe `open.spotify.com/embed/artist/{id}` si l'ID est connu.
+
+10. **Feedback utilisateur** — `feedback.save_feedback(artist, vote)` append dans `feedback.csv` (`artist, vote, timestamp`) ; le **vote le plus récent l'emporte** (`_load_latest_votes`). `👎 (-1)` → exclusion automatique des recos futures (réinjecté en action 3) ; `👍 (+1)` → mémorisé sans effet automatique. Bouton `➕` (`sync_seeds.add_artist`) ajoute la reco à `artistes_liste.csv` pour un futur scraping ("boucle de découverte").
+
+11. **Persistance des sessions** — à chaque calcul non vide, `session_log.save_session(recs, seeds, params)` écrit une ligne par reco dans `data/Recommandation/sessions.csv` (timestamp commun, rang, artiste, score, citations, sous-scores, tags, top 10 seeds par poids, et les paramètres α/β/γ/λ/ω, fenêtre récente, filtre genre). L'expander "Sessions précédentes" permet de recharger n'importe quelle session pour comparer l'effet des réglages.
+
+---
+
 ## Architecture
 
 ```
