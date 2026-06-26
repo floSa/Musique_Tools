@@ -373,6 +373,44 @@ def _extract_part_dieu_cote(content_text: str) -> tuple[list[str], list[str]]:
 # Qobuz — recherche artiste puis discographie (strict)
 # ---------------------------------------------------------------------------
 
+def _scroll_to_load(page, selector: str, max_rounds: int = 6, pause: float = 0.8) -> int:
+    """Scrolle jusqu'à stabiliser le nombre d'éléments `selector` (lazy-load).
+
+    Qobuz charge ses résultats au défilement : sans ça on ne voit que la
+    première salve, et le bon résultat — pas toujours en tête (ex. "Christophe"
+    noyé sous "Christopher …", ou un album précis loin dans la discographie) —
+    n'est jamais récolté. C'est exactement le « on ne descend pas assez ».
+    Retourne le compte final d'éléments.
+    """
+    prev = -1
+    count = 0
+    try:
+        for _ in range(max_rounds):
+            count = page.locator(selector).count()
+            if count == prev:
+                break
+            prev = count
+            page.mouse.wheel(0, 5000)
+            time.sleep(pause)
+    except Exception:
+        pass
+    return count
+
+
+def _artist_match_threshold(artist_q: str) -> float:
+    """Seuil de similarité artiste, durci pour les noms courts.
+
+    Les noms courts (~6 lettres) sont des quasi-homographes dangereux ("Air"
+    vs "Air Supply", "M83") : on exige un match quasi exact pour ne pas
+    retenir un voisin. Noms longs : seuil standard. Note : un nom comme
+    "Christophe" (10 lettres) reste sous le seuil standard — c'est la
+    préférence au match EXACT (cf. `get_qobuz_link_via_artist`), combinée au
+    scroll, qui le départage de "Christopher".
+    """
+    n = normalize(artist_q)
+    return 0.95 if len(n) <= 6 else ARTIST_MATCH_THRESHOLD
+
+
 def _pick_best_qobuz_album(candidates: list[dict], target_album: str) -> dict | None:
     """Choisit le meilleur album d'une liste de {title, url}.
 
@@ -411,6 +449,10 @@ def get_qobuz_link_via_artist(page, artist: str, album: str):
         except Exception:
             return None
 
+        # Lazy-load : descendre pour récolter plus que la première salve
+        # d'artistes (le bon n'est pas toujours en tête).
+        _scroll_to_load(page, "a[href*='/interpreter/']")
+
         # Récolter TOUS les artistes-candidats et garder le meilleur match (vs
         # `.first` qui prenait n'importe quoi, en particulier pour les noms
         # ambigus type "Air", "M83", "Worakls").
@@ -437,6 +479,8 @@ def get_qobuz_link_via_artist(page, artist: str, album: str):
 
         best_artist = None
         best_artist_score = 0.0
+        exact_artist = None          # match normalisé EXACT (display ou slug)
+        target_n = normalize(artist_q)
         for c in artist_candidates:
             href = c.get("href", "")
             if "/interpreter/" not in href:
@@ -446,6 +490,15 @@ def get_qobuz_link_via_artist(page, artist: str, album: str):
             cleaned_display = _clean_qobuz_display(c.get("displayName", ""))
             # Si après nettoyage il ne reste rien d'utile, on retombe sur le slug
             display_for_score = cleaned_display or slug_as_name
+            # Préférence au match EXACT : "Christophe" (exact) doit battre
+            # "Christopher" (flou à 0.95). Le premier exact rencontré suffit
+            # (1.0 est le plafond).
+            if target_n and exact_artist is None and (
+                normalize(display_for_score) == target_n
+                or normalize(slug_as_name) == target_n
+            ):
+                exact_artist = dict(c, score=1.0, displayName=display_for_score)
+                break
             score = max(
                 name_similarity(display_for_score, artist_q),
                 name_similarity(slug_as_name, artist_q),
@@ -454,8 +507,14 @@ def get_qobuz_link_via_artist(page, artist: str, album: str):
                 best_artist_score = score
                 best_artist = dict(c, score=score, displayName=display_for_score)
 
-        if not best_artist or best_artist_score < ARTIST_MATCH_THRESHOLD:
-            print(f"   [Qobuz] No strict artist match (best={best_artist_score:.2f})")
+        if exact_artist is not None:
+            best_artist = exact_artist
+            best_artist_score = 1.0
+
+        threshold = _artist_match_threshold(artist_q)
+        if not best_artist or best_artist_score < threshold:
+            print(f"   [Qobuz] No strict artist match "
+                  f"(best={best_artist_score:.2f}, seuil={threshold:.2f})")
             return None
 
         href = best_artist["href"]
@@ -480,10 +539,13 @@ def get_qobuz_link_via_artist(page, artist: str, album: str):
         except Exception:
             pass
 
+        # Discographie souvent lazy-loadée : scroller pour ne pas manquer un
+        # album situé bas dans la liste avant de chercher le bon titre.
         release_items = page.locator("div.product__item")
+        _scroll_to_load(page, "div.product__item", max_rounds=8)
         count = release_items.count()
         candidates: list[dict] = []
-        for i in range(min(count, 50)):
+        for i in range(min(count, 150)):
             item = release_items.nth(i)
             try:
                 title_el = item.locator(".product__name").first
@@ -538,11 +600,14 @@ def get_qobuz_play_url(page, artist: str, album: str):
         except Exception:
             pass
 
+        # Lazy-load : descendre avant de récolter (cap relevé à 25 vs 10).
+        _scroll_to_load(page, "div.album-item")
         album_items = page.locator("div.album-item")
         count = album_items.count()
+        artist_threshold = _artist_match_threshold(artist_q)
         if count > 0:
             scored = []
-            for i in range(min(count, 10)):
+            for i in range(min(count, 25)):
                 item = album_items.nth(i)
                 try:
                     artist_el = item.locator(".artist").first
@@ -557,7 +622,7 @@ def get_qobuz_play_url(page, artist: str, album: str):
                     s_artist = name_similarity(found_artist, artist_q)
                     s_album = name_similarity(found_album, album) if found_album else 0.0
                     score = 0.5 * s_artist + 0.5 * s_album
-                    if s_artist >= ARTIST_MATCH_THRESHOLD:
+                    if s_artist >= artist_threshold:
                         scored.append({
                             "score": score, "s_artist": s_artist, "s_album": s_album,
                             "artist": found_artist, "album": found_album, "href": href,
