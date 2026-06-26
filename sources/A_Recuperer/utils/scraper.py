@@ -133,7 +133,7 @@ def _log_selection(debug_path: Path, row: dict) -> None:
 
 def _find_other_bm_lyon_albums(page, artist_q: str, exclude_title: str,
                                 debug_path: Path, artist_brut: str,
-                                max_extra: int = 8) -> str:
+                                max_extra: int = 12) -> str:
     """Cherche les autres albums "Disque compact" du même artiste à la BM Lyon.
 
     Stratégie :
@@ -179,6 +179,11 @@ def _find_other_bm_lyon_albums(page, artist_q: str, exclude_title: str,
             time.sleep(2)
         except Exception:
             time.sleep(2)
+
+        # Descendre dans la page de résultats avant de récolter : le catalogue
+        # affiche d'abord une salve de notices, et tous les albums du même
+        # artiste ne sont pas forcément au-dessus de la ligne de flottaison.
+        _scroll_to_load(page, "a", max_rounds=4)
 
         # Collecter les liens-candidats avec leur texte (libellé ISBD)
         links = page.get_by_role("link").all()
@@ -701,6 +706,10 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
             page.wait_for_selector("a", timeout=5000)
         except Exception:
             pass
+
+        # Descendre dans les résultats avant de récolter (lazy-load) : la bonne
+        # notice n'est pas toujours dans la première salve affichée.
+        _scroll_to_load(page, "a", max_rounds=4)
 
         links = page.get_by_role("link").all()
         scored_candidates = []

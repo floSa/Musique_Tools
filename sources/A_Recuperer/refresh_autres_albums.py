@@ -258,7 +258,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Rafraîchit Autres_albums_biblio (BM Lyon) sans relancer le pipeline.")
     ap.add_argument("--dry-run", action="store_true", help="Compte seulement, aucun réseau, aucune écriture.")
     ap.add_argument("--playlist", default=None, help="Restreindre à une playlist (ex: Zen). Défaut : toutes.")
-    ap.add_argument("--max-extra", type=int, default=8, help="Nb max d'autres albums listés par artiste (défaut 8).")
+    ap.add_argument("--max-extra", type=int, default=12, help="Nb max d'autres albums listés par artiste (défaut 12).")
     args = ap.parse_args()
 
     playlists = discover_playlists(args.playlist)
