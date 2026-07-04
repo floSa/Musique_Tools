@@ -53,6 +53,43 @@ ARTIST_THRESHOLD = 90
 ALBUM_THRESHOLD = 80
 
 
+def _strip_owned_from_autres(autres: str, liste_pos: str,
+                             threshold: int = ALBUM_THRESHOLD) -> str:
+    """Retire de `Autres_albums_biblio` les albums déjà possédés en local.
+
+    `autres`     : "Titre - Cote, Titre - Cote" (albums du même artiste à la BM Lyon)
+    `liste_pos`  : "Album - Album - Album"       (albums de l'artiste possédés localement)
+
+    On ne garde dans `autres` que les albums qu'on n'a PAS déjà : pour chaque
+    segment, on compare son titre (partie avant le dernier " - ", la cote étant
+    après) aux albums possédés, en fuzzy `token_sort_ratio` sur les titres
+    normalisés (`clean_albums`), au même seuil que le matching biblio
+    (`ALBUM_THRESHOLD`). Titre possédé (>= seuil) → segment retiré.
+    """
+    from utils.matching import clean_albums
+    from rapidfuzz import fuzz
+
+    autres = "" if pd.isna(autres) else str(autres).strip()
+    if not autres:
+        return ""
+    owned = [clean_albums(t) for t in str(liste_pos).split(" - ")] if pd.notna(liste_pos) else []
+    owned = [o for o in owned if o]
+    if not owned:
+        return autres
+
+    kept = []
+    for seg in autres.split(", "):
+        seg = seg.strip()
+        if not seg:
+            continue
+        title = seg.rsplit(" - ", 1)[0] if " - " in seg else seg
+        t_norm = clean_albums(title)
+        if t_norm and any(fuzz.token_sort_ratio(t_norm, o) >= threshold for o in owned):
+            continue  # album déjà possédé → on l'enlève de la liste
+        kept.append(seg)
+    return ", ".join(kept)
+
+
 def cmd_extract_artists():
     from utils.data_loader import load_playlists
     df = load_playlists(PLAYLISTS_DIR)
@@ -274,6 +311,17 @@ def cmd_consolidate(playlist: str | None = None):
         right_on=['Artist', 'Album'],
         how='left',
     ).drop(columns=['Artist', 'Album'])
+
+    # Retirer de Autres_albums_biblio les albums qu'on possède déjà en local
+    # (présents dans Liste_albums_pos) : on ne veut y voir que des albums
+    # empruntables qu'on n'a PAS encore.
+    if 'Autres_albums_biblio' in df.columns and 'Liste_albums_pos' in df.columns:
+        df['Autres_albums_biblio'] = df.apply(
+            lambda r: _strip_owned_from_autres(
+                r.get('Autres_albums_biblio', ''), r.get('Liste_albums_pos', '')
+            ),
+            axis=1,
+        )
 
     def build_sources_qobuz(row):
         qobuz = str(row['Qobuz_URL']).strip() if pd.notna(row.get('Qobuz_URL')) else ''
