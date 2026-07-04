@@ -131,154 +131,164 @@ def _log_selection(debug_path: Path, row: dict) -> None:
 # BM Lyon — extraction de la cote sur la page de détail
 # ---------------------------------------------------------------------------
 
-def _find_other_bm_lyon_albums(page, artist_q: str, exclude_title: str,
-                                debug_path: Path, artist_brut: str,
-                                max_extra: int = 12) -> str:
-    """Cherche les autres albums "Disque compact" du même artiste à la BM Lyon.
+BM_HOME = "https://catalogue.bm-lyon.fr"
 
-    Stratégie :
-    1. Recherche `{artist_q} Disque compact` (artiste seul, sans album)
-    2. Récolte les liens dont le libellé contient `[Disque compact]` ET dont
-       le `parsed.author` matche l'artiste cible.
-    3. Pour chaque candidat (top `max_extra`, hors `exclude_title`), clique,
-       lit `Auteur :` + cote Part-Dieu.
-    4. Retourne une chaîne "Album1 - Cote1, Album2 - Cote2" (string vide
-       si rien trouvé d'autre).
 
-    `exclude_title` est l'album principal déjà trouvé — on ne le re-liste pas.
+def _bm_search_input(page):
+    """Retourne le champ de recherche du catalogue (plusieurs fallbacks)."""
+    for loc in [page.get_by_placeholder("Recherche", exact=False).first,
+                page.locator("input[type='search']").first,
+                page.locator("input[type='text']").first,
+                page.locator("input").first]:
+        try:
+            if loc.count():
+                return loc
+        except Exception:
+            pass
+    return None
+
+
+def _parse_notice_text(txt: str) -> tuple[str, str]:
+    """Découpe un libellé de résultat 'Titre [support] / Auteur' en (titre, auteur).
+
+    Sur la page de RÉSULTATS, le libellé est en ordre NATUREL
+    ('Trafic [Disque compact] / Gaëtan Roussel'), contrairement à la fiche
+    détail qui inverse ('Roussel, Gaëtan'). C'est donc la source la plus fiable
+    pour filtrer par auteur.
     """
-    print(f"   [BM-extras] Recherche autres albums de {artist_q!r} (exclut {exclude_title!r})")
-    if not artist_q:
-        print("   [BM-extras] -> skip (artist_q vide)")
-        return ""
+    if " / " not in txt:
+        return txt.split("[")[0].strip(), ""
+    left, right = txt.split(" / ", 1)
+    title = left.split("[")[0].strip()
+    author = re.split(r"[;.]", right)[0].strip()
+    return title, author
 
-    out_parts: list[str] = []
+
+def _harvest_artist_cd_notices(page, artist_q: str, max_notices: int = 25) -> list[dict]:
+    """Récolte tous les CD d'un artiste à la BM Lyon via navigation par facette.
+
+    Chercher un album précis sur catalogue.bm-lyon.fr est peu fiable : l'artiste
+    est souvent noyé/dispersé (films, compilations, autres artistes) et pas en
+    tête. On reproduit le geste manuel :
+
+    1. rechercher l'ARTISTE seul ;
+    2. filtrer la facette 'CD musicaux' (retire DVD/livres/partitions) ;
+    3. dérouler toute la page (lazy-load) ;
+    4. garder les notices '[Disque compact]' dont l'auteur (ordre naturel du
+       libellé) matche l'artiste — robuste à l'inversion et à la position.
+
+    Retourne [{title, author, href}] dédoublonné par titre.
+    """
+    if not artist_q:
+        return []
     try:
-        # On part toujours d'une page propre (catalogue d'accueil) pour
-        # éviter les comportements imprévus depuis la page de détail.
-        page.goto("https://catalogue.bm-lyon.fr/")
+        page.goto(f"{BM_HOME}/", wait_until="domcontentloaded", timeout=20000)
         try:
             page.wait_for_selector("input", timeout=10000)
         except Exception:
             time.sleep(2)
-        search_input = page.get_by_placeholder("Recherche", exact=False).first
-        if not search_input.count():
-            search_input = page.locator("input[type='search']").first
-        if not search_input.count():
-            search_input = page.locator("input[type='text']").first
-        if not search_input.count():
-            print("   [BM-extras] -> no search input found")
-            return ""
+        inp = _bm_search_input(page)
+        if inp is None:
+            print("   [BM] -> no search input found")
+            return []
+        inp.fill("")
+        inp.fill(artist_q)
+        inp.press("Enter")
+        time.sleep(4)
 
-        # Vider d'abord (input peut contenir une recherche précédente)
-        search_input.fill("")
-        search_input.fill(f"{artist_q} Disque compact")
-        search_input.press("Enter")
+        # Facette 'CD musicaux' (best-effort) : réduit le bruit DVD/livres.
         try:
-            page.wait_for_selector("text=Disque compact", timeout=10000)
-            time.sleep(2)
+            cd = page.get_by_text(re.compile(r"CD musicaux", re.I)).first
+            if cd.count():
+                cd.click()
+                time.sleep(2.5)
         except Exception:
-            time.sleep(2)
+            pass
 
-        # Descendre dans la page de résultats avant de récolter : le catalogue
-        # affiche d'abord une salve de notices, et tous les albums du même
-        # artiste ne sont pas forcément au-dessus de la ligne de flottaison.
-        _scroll_to_load(page, "a", max_rounds=4)
+        # Dérouler jusqu'à stabiliser le nombre de notices (lazy-load).
+        prev = -1
+        for _ in range(15):
+            n = page.locator("a[href*='/notice']").count()
+            if n == prev:
+                break
+            prev = n
+            page.mouse.wheel(0, 6000)
+            time.sleep(0.8)
 
-        # Collecter les liens-candidats avec leur texte (libellé ISBD)
-        links = page.get_by_role("link").all()
-        candidates = []
-        seen_titles = set()
-        exclude_norm = normalize(exclude_title)
-        seen_count = 0
-        author_match_count = 0
-        for link in links:
-            try:
-                if not link.is_visible():
-                    continue
-                txt = link.inner_text().strip()
-                if len(txt) < 10 or "disque compact" not in normalize(txt):
-                    continue
-                seen_count += 1
-                parsed = parse_bm_lyon_title(txt)
-                # Filtre : auteur doit matcher l'artiste cible
-                if parsed["author"]:
-                    sim = name_similarity(parsed["author"], artist_q)
-                    if sim < ARTIST_MATCH_THRESHOLD:
-                        continue
-                else:
-                    # Pas d'auteur parsable dans le libellé → on continue
-                    # (la re-vérification sur la page de détail tranchera)
-                    pass
-                author_match_count += 1
-                # Titre propre : retirer "[Disque compact]" et autres "[...]"
-                # même si parse_bm_lyon_title n'avait pas de ` / ` pour cleaner.
-                clean_title = re.sub(r"\[.*?\]", "", parsed["title"])
-                clean_title = re.sub(r"\s+", " ", clean_title).strip()
-                t_norm = normalize(clean_title)
-                if not t_norm or t_norm == exclude_norm or t_norm in seen_titles:
-                    continue
-                seen_titles.add(t_norm)
-                candidates.append({
-                    "title": clean_title, "link": link,
-                    "author": parsed["author"],
-                })
-                if len(candidates) >= max_extra:
-                    break
-            except Exception:
-                continue
-
-        # Pour chaque candidat : cliquer, RE-VÉRIFIER l'auteur sur la fiche,
-        # puis seulement lire la cote Part-Dieu. La re-vérification est
-        # indispensable — le filtre amont laisse passer les candidats sans
-        # auteur parsable dans le libellé de liste ; sans ce garde-fou, des
-        # albums d'autres artistes finissent dans Autres_albums_biblio.
-        for cand in candidates:
-            try:
-                cand["link"].click()
-                time.sleep(2)
-                content_text = page.locator("body").inner_text()
-                if not _bm_lyon_detail_artist_matches(
-                    page, content_text, artist_q, cand.get("author", "")
-                ):
-                    print(f"   [BM-extras] rejet (auteur != {artist_q!r}) : {cand['title']!r}")
-                    page.go_back()
-                    try:
-                        page.wait_for_selector("a", timeout=10000)
-                    except Exception:
-                        time.sleep(2)
-                    continue
-                if "Part-Dieu" in content_text:
-                    cotes, _ = _extract_part_dieu_cote(content_text)
-                    if cotes:
-                        out_parts.append(f"{cand['title']} - {cotes[0]}")
-                page.go_back()
-                try:
-                    page.wait_for_selector("a", timeout=10000)
-                except Exception:
-                    time.sleep(2)
-            except Exception:
-                try:
-                    page.go_back()
-                    time.sleep(1)
-                except Exception:
-                    pass
-                continue
-
-        print(f"   [BM-extras] {artist_q!r}: {seen_count} disque compact dans la liste, "
-              f"{author_match_count} match auteur, {len(candidates)} candidats, "
-              f"{len(out_parts)} cotes recuperees")
-        _log_selection(debug_path, {
-            "Timestamp": datetime.now().isoformat(timespec="seconds"),
-            "Source": "BM_Lyon_OtherAlbums",
-            "Artist_input": artist_brut, "Album_input": exclude_title,
-            "Selected_text": f"seen={seen_count}, matched={author_match_count}, kept={len(candidates)}",
-            "Score": "",
-            "URL": "", "Status": f"{len(out_parts)} extra albums",
-        })
+        pairs = page.eval_on_selector_all(
+            "a[href*='/notice']",
+            "els => els.map(e => ({t:(e.textContent||'').replace(/\\s+/g,' ').trim(), href:e.getAttribute('href')||''})).filter(o => o.t)"
+        )
     except Exception as e:
-        print(f"   [BM] Error in other-albums search: {e}")
+        print(f"   [BM] Error harvesting notices for {artist_q!r}: {e}")
+        return []
 
+    out: list[dict] = []
+    seen: set = set()
+    for o in pairs:
+        txt = o["t"]
+        if "disque compact" not in normalize(txt):
+            continue
+        title, author = _parse_notice_text(txt)
+        if not title or name_similarity(author, artist_q) < ARTIST_MATCH_THRESHOLD:
+            continue
+        key = normalize(title)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        href = o["href"]
+        if href.startswith("/"):
+            href = BM_HOME + href
+        out.append({"title": title, "author": author, "href": href})
+        if len(out) >= max_notices:
+            break
+    print(f"   [BM] {artist_q!r}: {len(pairs)} notices lues, {len(out)} CD retenus (match auteur)")
+    return out
+
+
+def _notice_part_dieu_cote(page, href: str) -> tuple[str, str]:
+    """Navigue vers une notice et renvoie (cote, statut) Part-Dieu ('' si absent)."""
+    try:
+        page.goto(href, wait_until="domcontentloaded", timeout=20000)
+        time.sleep(2)
+        body = page.locator("body").inner_text()
+        if "Part-Dieu" in body:
+            cotes, statuses = _extract_part_dieu_cote(body)
+            if cotes:
+                return cotes[0], (statuses[0] if statuses else "")
+    except Exception:
+        pass
+    return "", ""
+
+
+def _find_other_bm_lyon_albums(page, artist_q: str, exclude_title: str,
+                                debug_path: Path, artist_brut: str,
+                                max_extra: int = 12) -> str:
+    """Liste les CD du même artiste à la BM Lyon (hors `exclude_title`), avec cote.
+
+    Basée sur `_harvest_artist_cd_notices` (recherche artiste + facette CD +
+    filtre auteur), puis lecture de la cote Part-Dieu sur chaque notice.
+    Retourne 'Album1 - Cote1, Album2 - Cote2' ('' si rien).
+    """
+    print(f"   [BM-extras] Autres albums de {artist_q!r} (exclut {exclude_title!r})")
+    notices = _harvest_artist_cd_notices(page, artist_q)
+    excl = normalize(exclude_title)
+    out_parts: list[str] = []
+    for nt in notices:
+        if normalize(nt["title"]) == excl:
+            continue
+        cote, _statut = _notice_part_dieu_cote(page, nt["href"])
+        if cote:
+            out_parts.append(f"{nt['title']} - {cote}")
+        if len(out_parts) >= max_extra:
+            break
+    _log_selection(debug_path, {
+        "Timestamp": datetime.now().isoformat(timespec="seconds"),
+        "Source": "BM_Lyon_OtherAlbums",
+        "Artist_input": artist_brut, "Album_input": exclude_title,
+        "Selected_text": f"notices={len(notices)}, kept={len(out_parts)}",
+        "Score": "", "URL": "", "Status": f"{len(out_parts)} extra albums",
+    })
     return ", ".join(out_parts)
 
 
@@ -292,9 +302,11 @@ def _extract_bm_lyon_detail_author(content_text: str) -> str:
     plus robuste que de chasser le DOM avec un TreeWalker.
 
     On retire les annotations type "(groupe)", "(compositeur)" et les
-    compteurs "[30]". S'il y a plusieurs auteurs séparés par virgule, on
-    garde le premier. La virgule de fin (cas "Bourvil,") est aussi
-    nettoyée. Retourne "" si pas de label trouvé.
+    compteurs "[30]". Le catalogue écrit l'auteur en forme INVERSÉE
+    "Nom, Prénom" (ex. "Roussel, Gaëtan (1972-....)") : on la remet dans
+    l'ordre naturel "Prénom Nom" pour que la comparaison à l'artiste Spotify
+    fonctionne (sinon on ne garderait que "Roussel"). Plusieurs auteurs sont
+    séparés par ';' → on garde le premier. Retourne "" si pas de label.
     """
     if not content_text:
         return ""
@@ -304,12 +316,19 @@ def _extract_bm_lyon_detail_author(content_text: str) -> str:
     if not m:
         return ""
     raw = m.group(1)
-    # Retirer parenthèses et crochets
+    # Retirer parenthèses (dates de vie, "(groupe)"…) et crochets ("[30]")
     s = re.sub(r"\([^)]*\)", "", raw)
     s = re.sub(r"\[[^\]]*\]", "", s)
     s = re.sub(r"\s+", " ", s).strip()
-    # Si plusieurs auteurs séparés par ",", garder le premier
-    s = s.split(",")[0].strip()
+    # Plusieurs auteurs → séparés par ';' dans le catalogue : on garde le 1er.
+    s = s.split(";")[0].strip()
+    # Dés-inversion "Nom, Prénom" → "Prénom Nom". Une seule virgule = forme
+    # inversée d'un auteur unique ; plusieurs = on garde le 1er bloc.
+    if s.count(",") == 1:
+        nom, prenom = [p.strip() for p in s.split(",", 1)]
+        s = f"{prenom} {nom}".strip() if (nom and prenom) else (nom or prenom)
+    elif s.count(",") > 1:
+        s = s.split(",")[0].strip()
     # Retirer points/tirets parasites en fin
     return s.rstrip(".,;:- ").strip()
 
@@ -658,8 +677,15 @@ def get_qobuz_play_url(page, artist: str, album: str):
 # ---------------------------------------------------------------------------
 
 def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
-    """Cherche un album sur catalogue.bm-lyon.fr et tente d'extraire la cote
-    Part-Dieu. Retourne un dict partiel à fusionner dans `result_data`."""
+    """Localise un album à la BM Lyon + liste les autres CD du même artiste.
+
+    Navigation par artiste (cf. `_harvest_artist_cd_notices`) : on récolte TOUS
+    les CD de l'artiste, on lit la cote Part-Dieu de chacun, puis :
+      - album cible = meilleure correspondance de titre → Cote / Disponibilité / Found ;
+      - les autres → Autres_albums_biblio.
+    Une seule recherche par artiste, robuste aux artistes « durs à retrouver »
+    (dispersés, noms inversés, mélangés à des films) — le cas Gaëtan Roussel.
+    """
     out = {
         "Artiste_Bibliotheque": "",
         "Cote": "",
@@ -667,196 +693,64 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
         "Status": "Part-Dieu Not Listed",
         "Autres_albums_biblio": "",
     }
-
-    # Pour les collabs "Ghostpoet,Paul Smith" → recherche sur "Ghostpoet" seul.
-    # Le matching ultérieur compare aussi sur l'artiste primaire.
+    # Collabs "Ghostpoet,Paul Smith" → on cherche l'artiste primaire seul.
     artist_q = _primary_artist(artist)
 
     try:
-        # Toujours partir d'un état propre (catalogue d'accueil) pour éviter
-        # que le state laissé par l'itération précédente (page de résultats,
-        # détail album, page artiste) ne pollue la recherche courante.
-        try:
-            page.goto("https://catalogue.bm-lyon.fr/", wait_until="domcontentloaded", timeout=15000)
-            try:
-                page.wait_for_selector("input", timeout=10000)
-            except Exception:
-                time.sleep(2)
-        except Exception:
-            pass
-
-        search_input = page.get_by_placeholder("Recherche", exact=False).first
-        if not search_input.count():
-            search_input = page.locator("input[type='search']").first
-        if not search_input.count():
-            search_input = page.locator("input[type='text']").first
-
-        query = f"{artist_q} {album} Disque compact"
-        search_input.fill(query)
-        search_input.press("Enter")
-
-        try:
-            page.wait_for_selector("text=Disque compact", timeout=10000)
-            time.sleep(2)
-        except Exception:
-            time.sleep(2)
-
-        # Phase 1 — récolter les liens-candidats et les scorer SANS cliquer
-        try:
-            page.wait_for_selector("a", timeout=5000)
-        except Exception:
-            pass
-
-        # Descendre dans les résultats avant de récolter (lazy-load) : la bonne
-        # notice n'est pas toujours dans la première salve affichée.
-        _scroll_to_load(page, "a", max_rounds=4)
-
-        links = page.get_by_role("link").all()
-        scored_candidates = []
-        seen_texts = set()
-        # On collecte AUSSI tous les auteurs rencontrés (pas filtrés par
-        # score combiné) pour pouvoir détecter "l'artiste existe à la BM
-        # Lyon mais pas cet album précis". Ex: Ghostpoet / Vicious Delicious
-        # n'est pas en biblio, mais Ghostpoet y a 5 albums.
-        authors_seen: set[str] = set()
-        for link in links:
-            try:
-                if not link.is_visible():
-                    continue
-                txt = link.inner_text().strip()
-                if len(txt) < 10:
-                    continue
-                # Pré-filtre : les entrées catalogue ont systématiquement
-                # "Disque compact" dans le libellé
-                if "disque compact" not in normalize(txt):
-                    continue
-                if txt in seen_texts:
-                    continue
-                seen_texts.add(txt)
-                score, parsed = score_bm_lyon_candidate(txt, artist_q, album)
-                if parsed["author"]:
-                    authors_seen.add(parsed["author"])
-                if score >= BM_CANDIDATE_THRESHOLD:
-                    scored_candidates.append({
-                        "score": score, "text": txt, "parsed": parsed, "link": link,
-                    })
-            except Exception:
-                continue
-
-        # L'artiste recherché est-il représenté dans les résultats (même si
-        # l'album précis n'est pas trouvé) ? Utile pour décider de lancer la
-        # recherche "autres albums du même artiste" même sans Found.
-        artist_present_in_bm = any(
-            name_similarity(a, artist_q) >= ARTIST_MATCH_THRESHOLD
-            for a in authors_seen
-        )
-
-        scored_candidates.sort(key=lambda x: x["score"], reverse=True)
-        top = scored_candidates[:BM_TOP_K_CANDIDATES]
-
-        if not top:
+        notices = _harvest_artist_cd_notices(page, artist_q)
+        if not notices:
             _log_selection(debug_path, {
                 "Timestamp": datetime.now().isoformat(timespec="seconds"),
                 "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
-                "Selected_text": "", "Score": 0.0, "Status": "no_candidate_above_threshold",
+                "Selected_text": "", "Score": 0.0, "Status": "artist_not_in_bm",
             })
-            # Aucun candidat sur "{artist} {album} Disque compact" ne veut
-            # pas dire que l'artiste n'est pas en biblio : il peut juste
-            # ne pas avoir CET album précis. On relance avec uniquement
-            # `{artist} Disque compact` via _find_other_bm_lyon_albums
-            # qui filtre par auteur (donc 0 clic si l'artiste n'est pas là).
-            out["Autres_albums_biblio"] = _find_other_bm_lyon_albums(
-                page, artist_q, exclude_title="",
-                debug_path=debug_path, artist_brut=artist,
-            )
             return out
 
-        # Phase 2 — cliquer sur les top-K dans l'ordre, jusqu'à trouver Part-Dieu
-        for cand in top:
-            try:
-                cand_text = cand["text"]
-                parsed = cand["parsed"]
-                print(f"   [BM] Trying candidate (score={cand['score']:.2f}): {cand_text[:80]!r}")
-                cand["link"].click()
-                time.sleep(3)
-                content_text = page.locator("body").inner_text()
+        # Lire la cote Part-Dieu de chaque notice (cap coût réseau).
+        enriched = []
+        for nt in notices[:15]:
+            cote, statut = _notice_part_dieu_cote(page, nt["href"])
+            enriched.append({**nt, "cote": cote, "statut": statut})
 
-                # Re-vérification stricte de l'artiste sur la page de détail
-                # (auteur fiche → auteur parsé → h1). Mutualisée avec la liste
-                # des « autres albums » via _bm_lyon_detail_artist_matches.
-                # detail_author est conservé pour renseigner Artiste_Bibliotheque.
-                detail_author = _extract_bm_lyon_detail_author(content_text)
-                page_artist_ok = _bm_lyon_detail_artist_matches(
-                    page, content_text, artist_q, parsed["author"]
-                )
-                if not page_artist_ok:
-                    print(f"   [BM] Artist mismatch: target={artist_q!r}; "
-                          f"detail_author={detail_author!r}; "
-                          f"parsed_author={parsed['author']!r}")
-                    page.go_back()
-                    try:
-                        page.wait_for_selector("a", timeout=10000)
-                    except Exception:
-                        time.sleep(2)
-                    continue
+        # Album cible = meilleure correspondance de titre parmi ses CD.
+        best, best_s = None, 0.0
+        for e in enriched:
+            s = name_similarity(e["title"], album)
+            if s > best_s:
+                best_s, best = s, e
+        main = best if (best and best_s >= 0.65) else None
 
-                if "Part-Dieu" in content_text:
-                    cotes, statuses = _extract_part_dieu_cote(content_text)
-                    if cotes:
-                        # Préférer le `Auteur :` lu sur la page de détail
-                        # (plus fiable que le parsing du libellé du lien)
-                        out["Artiste_Bibliotheque"] = (
-                            detail_author or parsed["author"] or cand_text.split("\n")[0]
-                        )
-                        out["Status"] = "Found"
-                        out["Cote"] = " - ".join(cotes)
-                        out["Disponibilité"] = " - ".join(statuses)
-                        _log_selection(debug_path, {
-                            "Timestamp": datetime.now().isoformat(timespec="seconds"),
-                            "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
-                            "Selected_text": cand_text[:200], "Score": round(cand["score"], 3),
-                            "Score_artist": "", "Score_album": "",
-                            "URL": page.url, "Status": "found_part_dieu",
-                        })
-                        # Maintenant on cherche les AUTRES albums du même
-                        # artiste à la BM Lyon (max 8 albums supplémentaires
-                        # avec leur cote, séparés par ", ")
-                        out["Autres_albums_biblio"] = _find_other_bm_lyon_albums(
-                            page, artist_q,
-                            exclude_title=parsed["title"] or album,
-                            debug_path=debug_path,
-                            artist_brut=artist,
-                        )
-                        return out
-                # Pas de Part-Dieu sur ce candidat → suivant
-                page.go_back()
-                try:
-                    page.wait_for_selector("a", timeout=10000)
-                except Exception:
-                    time.sleep(2)
-            except Exception as e:
-                print(f"   [BM] Error on candidate: {e}")
-                try:
-                    page.go_back()
-                    time.sleep(2)
-                except Exception:
-                    pass
+        if main and main["cote"]:
+            out["Status"] = "Found"
+            out["Cote"] = main["cote"]
+            out["Disponibilité"] = main["statut"]
+            out["Artiste_Bibliotheque"] = main["author"] or artist_q
+            _log_selection(debug_path, {
+                "Timestamp": datetime.now().isoformat(timespec="seconds"),
+                "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
+                "Selected_text": f"{main['title']} (sim={best_s:.2f})",
+                "Score": round(best_s, 3), "URL": main["href"], "Status": "found_part_dieu",
+            })
+        else:
+            # Artiste présent en biblio mais album cible pas trouvé / sans cote.
+            out["Artiste_Bibliotheque"] = enriched[0]["author"] or artist_q
+            _log_selection(debug_path, {
+                "Timestamp": datetime.now().isoformat(timespec="seconds"),
+                "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
+                "Selected_text": f"artiste present, album absent (best={best_s:.2f})",
+                "Score": round(best_s, 3), "Status": "album_not_found_artist_present",
+            })
+
+        # Autres albums = ceux avec cote, hors l'album cible, cap 12.
+        main_title_n = normalize(main["title"]) if main else normalize(album)
+        others = []
+        for e in enriched:
+            if not e["cote"] or normalize(e["title"]) == main_title_n:
                 continue
-
-        # Aucun des top-K n'avait Part-Dieu
-        _log_selection(debug_path, {
-            "Timestamp": datetime.now().isoformat(timespec="seconds"),
-            "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
-            "Selected_text": top[0]["text"][:200] if top else "",
-            "Score": round(top[0]["score"], 3) if top else 0.0,
-            "Status": "no_part_dieu_in_top_candidates",
-        })
-        # Si l'artiste existe quand même dans la BM Lyon, on liste ses albums.
-        if artist_present_in_bm:
-            out["Autres_albums_biblio"] = _find_other_bm_lyon_albums(
-                page, artist_q, exclude_title=album,
-                debug_path=debug_path, artist_brut=artist,
-            )
+            others.append(f"{e['title']} - {e['cote']}")
+            if len(others) >= 12:
+                break
+        out["Autres_albums_biblio"] = ", ".join(others)
         return out
 
     except Exception as e:
