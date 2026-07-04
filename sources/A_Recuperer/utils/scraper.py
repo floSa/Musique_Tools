@@ -133,6 +133,13 @@ def _log_selection(debug_path: Path, row: dict) -> None:
 
 BM_HOME = "https://catalogue.bm-lyon.fr"
 
+# Cache par artiste des notices CD enrichies (title/author/href/cote/statut),
+# rempli au fil d'un run. `albums_a_rechercher` étant trié par artiste, les
+# albums d'un même artiste se suivent : on évite ainsi de re-scraper ses CD
+# (1 recherche + N notices) pour chacun de ses albums. Réinitialisé à chaque
+# process (pas de persistance disque).
+_BM_ARTIST_CACHE: dict = {}
+
 
 def _bm_search_input(page):
     """Retourne le champ de recherche du catalogue (plusieurs fallbacks)."""
@@ -697,20 +704,26 @@ def _process_bm_lyon(page, artist: str, album: str, debug_path: Path) -> dict:
     artist_q = _primary_artist(artist)
 
     try:
-        notices = _harvest_artist_cd_notices(page, artist_q)
-        if not notices:
+        # Cache par artiste (albums d'un même artiste consécutifs dans l'input).
+        cache_key = normalize(artist_q)
+        if cache_key in _BM_ARTIST_CACHE:
+            enriched = _BM_ARTIST_CACHE[cache_key]
+        else:
+            notices = _harvest_artist_cd_notices(page, artist_q)
+            # Lire la cote Part-Dieu de chaque notice (cap coût réseau).
+            enriched = []
+            for nt in notices[:15]:
+                cote, statut = _notice_part_dieu_cote(page, nt["href"])
+                enriched.append({**nt, "cote": cote, "statut": statut})
+            _BM_ARTIST_CACHE[cache_key] = enriched
+
+        if not enriched:
             _log_selection(debug_path, {
                 "Timestamp": datetime.now().isoformat(timespec="seconds"),
                 "Source": "BM_Lyon", "Artist_input": artist, "Album_input": album,
                 "Selected_text": "", "Score": 0.0, "Status": "artist_not_in_bm",
             })
             return out
-
-        # Lire la cote Part-Dieu de chaque notice (cap coût réseau).
-        enriched = []
-        for nt in notices[:15]:
-            cote, statut = _notice_part_dieu_cote(page, nt["href"])
-            enriched.append({**nt, "cote": cote, "statut": statut})
 
         # Album cible = meilleure correspondance de titre parmi ses CD.
         best, best_s = None, 0.0
