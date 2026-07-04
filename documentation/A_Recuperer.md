@@ -66,15 +66,16 @@ flowchart TD
     loop -->|non| bmflow["BM Lyon"]
     loop -->|non| qzart["Qobuz"]
 
-    subgraph BM["BM Lyon (_process_bm_lyon)"]
-      bmflow --> bm
-      bm --> bmscore["Scorer les candidats (score_bm_lyon_candidate)"]
-      bmscore --> bmtop["Cliquer le top-K (max 5)"]
-      bmtop --> bmverif{"Artiste confirmé sur la fiche ? (_bm_lyon_detail_artist_matches)"}
-      bmverif -->|non| bmnext["Candidat suivant"]
-      bmnext --> bmtop
-      bmverif -->|oui| bmcote["Extraire la cote Part-Dieu (_extract_part_dieu_cote)"]
-      bmcote --> bmother["Autres albums du même artiste (_find_other_bm_lyon_albums : scroll, max 12, re-vérifiés)"]
+    subgraph BM["BM Lyon (_process_bm_lyon) — navigation par artiste"]
+      bmflow --> bmcache{"Artiste déjà en cache ?"}
+      bmcache -->|oui| bmpick
+      bmcache -->|non| bmsearch["Recherche ARTISTE seul (_harvest_artist_cd_notices)"]
+      bmsearch --> bm
+      bm --> bmfacet["Facette 'CD musicaux' + scroll (déroule tout)"]
+      bmfacet --> bmfilter["Filtre auteur sur le libellé 'Titre / Prénom Nom' + dédup"]
+      bmfilter --> bmnotice["Naviguer chaque notice → cote Part-Dieu (_notice_part_dieu_cote)"]
+      bmnotice --> bmpick["Album cible = meilleure corresp. de titre → Cote / Found"]
+      bmpick --> bmother["Les autres CD → Autres_albums_biblio (max 12)"]
     end
 
     subgraph QZG["Qobuz (get_qobuz_play_url)"]
@@ -108,7 +109,7 @@ flowchart TD
 2. **`--scan-library`** — `cmd_scan_library()` → `scan_all_libraries()` (utils/library.py) parcourt les 4 racines physiques (`LIBRARY_PATH` etc.) et produit `bibliotheque.csv` (`Artist`, `Album`, `Path`). **Garde-fou** : si la racine principale `__Autres` est introuvable (M: non monté), on **n'écrase pas** la `bibliotheque.csv` existante (évite de perdre le snapshot depuis une machine sans accès M:).
 3. **`--match`** — `cmd_match()` nettoie les noms (`clean_artist`/`clean_albums` : `unidecode`, sans accents/casse/parenthèses) puis `match_albums_with_fuzz` (utils/matching.py, `rapidfuzz.token_sort_ratio`) compare chaque (artiste, album) de playlist à la bibliothèque. Un album est **à récupérer** si `Album_sim < 80` (`ALBUM_THRESHOLD`) **et** absent de `recherches_effectuees.xlsx`. Sorties : `albums_a_rechercher_<playlist>.csv` (à scraper) et `albums_match_complet_<playlist>.csv` (avec scores + `Path_Possede` pour la consolidation).
 4. **`--search` (boucle)** — `run_scraper()` (utils/scraper.py) lit `albums_a_rechercher_<playlist>.csv`, **saute** les couples (Artist, Album) déjà présents dans `resultats_cotes_<playlist>.csv` (reprise après interruption), et pour chaque album restant interroge **BM Lyon puis Qobuz** (les deux toujours, côte à côte). Append + flush ligne par ligne ; toute sélection est journalisée dans `debug_selection.csv`.
-5. **BM Lyon** — `_process_bm_lyon()` recherche `"{artiste} {album} Disque compact"`, score les notices ISBD (`score_bm_lyon_candidate`, pondère titre+auteur), clique les `BM_TOP_K_CANDIDATES` (5) meilleures, et **re-vérifie l'artiste sur la fiche détail** via `_bm_lyon_detail_artist_matches()` (Auteur fiche → auteur parsé → h1, tolérance sous-ensemble). Si confirmé et présence Part-Dieu : `_extract_part_dieu_cote()` lit la/les cote(s) + dispo (`Status = Found`). Dans tous les cas où l'artiste existe à la BM Lyon, `_find_other_bm_lyon_albums()` liste ses **autres** albums (scroll lazy-load, jusqu'à `max_extra = 12`, chaque album re-vérifié) → colonne `Autres_albums_biblio`.
+5. **BM Lyon (navigation par artiste)** — `_process_bm_lyon()` reproduit le geste manuel plutôt que de chercher l'album précis (peu fiable : l'artiste est souvent dispersé, en nom inversé, mêlé à des films). `_harvest_artist_cd_notices()` : recherche l'**artiste seul**, applique la facette **« CD musicaux »**, **déroule toute la page** (lazy-load), puis garde les notices dont l'auteur lu sur le libellé en ordre naturel (`Titre [Disque compact] / Prénom Nom`) matche l'artiste (robuste à l'inversion et à la position). On **navigue chaque notice** (`_notice_part_dieu_cote()`) pour lire la cote Part-Dieu. L'**album cible** = meilleure correspondance de titre → `Cote` / `Disponibilité` / `Status = Found` ; les **autres** CD → `Autres_albums_biblio` (max 12). Un **cache par artiste** (`_BM_ARTIST_CACHE`) évite de re-scraper pour chaque album d'un même artiste (albums consécutifs dans l'input trié). Une seule recherche par artiste sert donc les deux colonnes.
 6. **Qobuz** — `get_qobuz_play_url()` cherche d'abord la page artiste (`get_qobuz_link_via_artist`) : récolte des candidats `/interpreter/` après `_scroll_to_load` (lazy-load), **préférence au match normalisé exact** (départage *Christophe* de *Christopher*) sinon meilleur flou ≥ seuil (`_artist_match_threshold` : 0.95 pour les noms ≤ 6 lettres, 0.85 sinon). Sur la page artiste, parcourt la discographie (scroll, jusqu'à 150 items) et choisit l'album (`_pick_best_qobuz_album`). Fallbacks en cascade : lien artiste `play.qobuz.com/artist/<id>` si l'album précis est introuvable, recherche directe puis lien `play.qobuz.com/search/` en dernier recours. Toutes les URLs rendues pointent sur `play.qobuz.com` (jamais `www.qobuz.com`, réservé à la navigation interne du scraper).
 7. **`--consolidate`** — `cmd_consolidate()` fusionne `albums_match_complet_<playlist>.csv` (matching biblio locale) et `resultats_cotes_<playlist>.csv` (cotes BM Lyon + Qobuz), recompose les colonnes lisibles (`Sources Qobuz`, `Sources Bibli` = cote + dispo, `Autres_albums_biblio`, `Path_Possede` relatif) et écrit `data/Resultats/resultats_final_<playlist>.csv` + `.xlsx` (fichier de consultation final).
 
