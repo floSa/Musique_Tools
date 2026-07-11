@@ -426,3 +426,18 @@ Albums khinsider (URLs dans albums_khinsider.csv)
 | `LASTFM_API_KEY` | Artistes_Similaires_LastFM | Clé API Last.fm | — |
 | `LIBRARY_PATH` | A_Recuperer | Chemin WSL vers la bibliothèque physique | `/mnt/m/musiques/__Autres` |
 | `KHINSIDER_OUTPUT` | Musique_Jeux_Video | Dossier de sortie pour les OST téléchargées (audio volumineux, hors repo) | `~/mes_projets/Musique_Jeux_Video/datas` |
+
+---
+
+## Licences & composants
+
+| Composant | Rôle | Licence |
+|---|---|---|
+| Streamlit | Interface web | Apache-2.0 |
+| API Last.fm | Artistes similaires | Conditions Last.fm (clé API requise) |
+| Qobuz / Spotify | Sources d'artistes similaires | Conditions propriétaires des plateformes |
+| Khinsider | Source des OST (jeux vidéo) | Contenu tiers — usage personnel |
+| **Ce projet** | Code applicatif | MIT — Copyright (c) 2026 floSa `<à confirmer : aucun fichier LICENSE présent>` |
+
+> Les données récupérées via API ou scraping restent soumises aux conditions de leurs
+> plateformes respectives (usage personnel).
