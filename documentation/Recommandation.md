@@ -294,14 +294,14 @@ comparer à une similarité Jaccard ∈ [0, 1].
 > monde, donc il "passe" toujours sans pénalité. C'est pourquoi `update_tags.py`
 > est important pour que la diversification soit pleinement opérante.
 
-### 9. Feedback utilisateur (👍 / 👎)
+### 9. Feedback utilisateur (like / dislike)
 
 Chaque recommandation porte deux boutons :
 
-- **👎 Dislike** : l'artiste est ajouté à `data/Recommandation/feedback.csv`
+- **Dislike** : l'artiste est ajouté à `data/Recommandation/feedback.csv`
   avec `vote = -1` et exclu **automatiquement** des futures recommandations
   (au même titre que la biblio et les playlists).
-- **👍 Like** : `vote = +1`, mémorisé sans effet automatique. Sert de signal
+- **Like** : `vote = +1`, mémorisé sans effet automatique. Sert de signal
   pour de l'analyse manuelle (quels seeds → quels likes ?) ou un futur ML.
 
 Si plusieurs votes pour un même artiste, **le plus récent l'emporte**. Les
@@ -334,7 +334,7 @@ Le filtre genre supporte deux modes :
   Restrictif — utile pour des combinaisons précises (ex : "rock français",
   "techno minimal").
 
-> ⚠️ Tous les artistes de la base Last.fm n'ont pas leurs tags renseignés
+> Tous les artistes de la base Last.fm n'ont pas leurs tags renseignés
 > tant que `update_tags.py` n'a pas tourné — sans tags, le filtre les exclut
 > (en OR comme en AND).
 
@@ -417,7 +417,7 @@ sélectionnes des genres, un candidat passe s'il a **au moins un** des tags
 choisis. Logique OR, pas AND — pour rester permissif (les tags Last.fm sont
 bruités).
 
-> ⚠️ Tous les artistes de la base Last.fm n'ont pas leurs tags renseignés
+> Tous les artistes de la base Last.fm n'ont pas leurs tags renseignés
 > (problème historique d'import). Lance `update_tags.py` dans
 > `Artistes_Similaires_LastFM/` pour les compléter.
 
@@ -462,7 +462,7 @@ Pour chaque recommandation :
 
 ## Lancement
 
-> 💽 **Prérequis : disque M: monté dans WSL**
+> **Prérequis : disque M: monté dans WSL**
 > La bibliothèque physique (`/mnt/m/musiques/__Autres`) est lue pour construire
 > la liste des artistes exclus et le pool de seeds.
 >
@@ -589,7 +589,7 @@ uv run python expand_base.py --top-n 500   # Plus large
 uv run python expand_base.py --min-citations 20  # Seuil plus strict (moins de bruit)
 ```
 
-> ⚠️ **`expand_base.py` seul ne suffit pas** — il ajoute les artistes à
+> **`expand_base.py` seul ne suffit pas** — il ajoute les artistes à
 > `artistes_liste.csv` mais ne les scrape pas. Il faut toujours enchaîner
 > avec les deux scrapers (étapes 2 et 3 ci-dessous).
 

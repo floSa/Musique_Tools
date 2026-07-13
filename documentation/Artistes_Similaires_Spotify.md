@@ -140,7 +140,7 @@ CREATE TABLE artists (
 );
 ```
 
-> 🔁 **Unification du stockage** — depuis le refactor SQLite, Last.fm et Spotify
+> **Unification du stockage** — depuis le refactor SQLite, Last.fm et Spotify
 > partagent la même structure de table (à un champ `source_artist_id` près,
 > spécifique à Spotify). Le service Recommandation lit indifféremment les deux
 > via `engine.load_lastfm_similar()` / `engine.load_spotify_similar()`.

@@ -158,7 +158,7 @@ CREATE TABLE artists (
 
 ## Algorithme de matching strict
 
-> ⚠️ **Coquille corrigée** — la fonction `check_artist_presence` du scraper
+> **Coquille corrigée** — la fonction `check_artist_presence` du scraper
 > existant (`A_Recuperer/utils/scraper.py`) acceptait un match dès **1 token**
 > commun, ce qui causait des confusions ("Worakls" matchait "Kevin Worakls",
 > par exemple). Le service Qobuz utilise un matching plus strict.

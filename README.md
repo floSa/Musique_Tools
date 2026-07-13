@@ -1,6 +1,11 @@
 # Musique_Tools
 
-Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe huit services autour de Spotify, Qobuz, Last.fm, de la bibliothèque physique personnelle, des sources d'acquisition, et des bandes originales de jeux vidéo.
+**Boîte à outils centralisée pour la gestion et la découverte musicale. Elle regroupe huit services autour de Spotify, Qobuz, Last.fm, de la bibliothèque physique personnelle, des sources d'acquisition, et des bandes originales de jeux vidéo.**
+
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![uv](https://img.shields.io/badge/uv-package_manager-DE5FE9?logo=uv&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.58+-FF4B4B?logo=streamlit&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-scraping-2EAD33?logo=playwright&logoColor=white)
 
 ---
 
@@ -73,6 +78,23 @@ Musique_Tools/
 | **Recommandation** | `sources/Recommandation/` | Interface Streamlit de découverte d'artistes (Last.fm + Spotify) |
 | **Priorisation** | `sources/Priorisation/` | Interface Streamlit qui prioritise les albums à récupérer (6 signaux pondérés, top N artistes) |
 | **Musique_Jeux_Video** | `sources/Musique_Jeux_Video/` | Scraper khinsider.com — bandes originales de jeux vidéo (FLAC/MP3) |
+
+---
+
+## Documentation
+
+Chaque service dispose d'une fiche détaillée dans [`documentation/`](documentation/).
+
+| Fiche | Service documenté |
+|---|---|
+| [Analyse.md](documentation/Analyse.md) | Notebooks d'analyse Spotify |
+| [Artistes_Similaires_LastFM.md](documentation/Artistes_Similaires_LastFM.md) | Artistes similaires via API Last.fm |
+| [Artistes_Similaires_Spotify.md](documentation/Artistes_Similaires_Spotify.md) | Artistes similaires via scraping Spotify |
+| [Artistes_Similaires_Qobuz.md](documentation/Artistes_Similaires_Qobuz.md) | Artistes similaires + portrait via Qobuz |
+| [A_Recuperer.md](documentation/A_Recuperer.md) | Pipeline de recherche d'albums |
+| [Recommandation.md](documentation/Recommandation.md) | Interface Streamlit de découverte |
+| [Priorisation.md](documentation/Priorisation.md) | Interface Streamlit de priorisation |
+| [Musique_Jeux_Video.md](documentation/Musique_Jeux_Video.md) | Scraper khinsider (OST jeux vidéo) |
 
 ---
 
@@ -235,7 +257,7 @@ PLAYLIST_FILTER=Partage uv run python main.py --consolidate
 # → data/Resultats/resultats_final_Partage.xlsx
 ```
 
-#### ⚠️ Re-scraper après un correctif du matching
+#### Re-scraper après un correctif du matching
 
 `--search` **saute les couples (Artist, Album) déjà présents** dans
 `resultats_cotes_<playlist>.csv`. Donc relancer `--search` sur un fichier
@@ -249,7 +271,7 @@ PLAYLIST_FILTER=Partage HEADLESS=false uv run python main.py --search   # visibl
 PLAYLIST_FILTER=Partage uv run python main.py --consolidate
 ```
 
-👉 Valider d'abord sur la plus petite playlist (`Partage`) en `HEADLESS=false`
+Valider d'abord sur la plus petite playlist (`Partage`) en `HEADLESS=false`
 avant de lancer les gros runs (Zen, La_French = plusieurs heures).
 
 Pour **rafraîchir uniquement `Autres_albums_biblio`** (autres albums du même
