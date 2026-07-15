@@ -478,6 +478,21 @@ recherches catalogue (sinon aucun match possible). Helper `_primary_artist`.
 5. Si aucun match précis ni artiste → `Qobuz_URL` **vide** (jamais d'URL
    `/search/` polluante dans le fichier final)
 
+**Correctifs (régressions découvertes sur le run La_French complet)** :
+- **Découpage `Titre - Cote`** (`main.py`, `refresh_autres_albums.py`,
+  `_extract_part_dieu_cote`) : le titre est la partie avant le **premier**
+  `" - "`, pas le dernier — la cote (ou le statut, ex. `"Prêté - Retour prévu
+  le : ..."`) peut elle-même contenir `" - "`. Un `rsplit` coupait alors le
+  titre à tort (ex. `"My god is blue - D 59179"` au lieu de `"My god is
+  blue"`), ce qui faisait échouer le fuzzy-match et laissait des albums déjà
+  possédés dans `Autres_albums_biblio`.
+- **Tolérance nom de scène** (`_harvest_artist_cd_notices`) : le catalogue
+  écrit parfois un nom de scène seul (`"Bourvil"`) quand l'artiste cible est
+  le nom complet (`"André Bourvil"`), similarité 0.70 < seuil strict. La
+  tolérance `allow_subset=True`, perdue lors du passage à la navigation par
+  artiste, a été réintroduite — sans elle des artistes bien réels étaient
+  déclarés absents à tort (régression constatée : 33 % → 21 % de `Found`).
+
 ### Matching strict (`utils/text_match.py`)
 
 Aligné sur le service Artistes_Similaires_Qobuz pour éviter les faux positifs

@@ -82,7 +82,12 @@ def _strip_owned_from_autres(autres: str, liste_pos: str,
         seg = seg.strip()
         if not seg:
             continue
-        title = seg.rsplit(" - ", 1)[0] if " - " in seg else seg
+        # split (pas rsplit) : la cote peut elle-même contenir " - " (ex.
+        # "782.ARC 61 - Prêté" pour un CD emprunté) ; le titre, lui, jamais.
+        # rsplit coupait alors le titre en 2 ("My god is blue - D 59179" au
+        # lieu de "My god is blue"), ce qui faisait échouer le fuzzy-match
+        # et laissait des albums déjà possédés dans Autres_albums_biblio.
+        title = seg.split(" - ", 1)[0] if " - " in seg else seg
         t_norm = clean_albums(title)
         if t_norm and any(fuzz.token_sort_ratio(t_norm, o) >= threshold for o in owned):
             continue  # album déjà possédé → on l'enlève de la liste

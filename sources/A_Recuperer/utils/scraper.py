@@ -237,7 +237,13 @@ def _harvest_artist_cd_notices(page, artist_q: str, max_notices: int = 25) -> li
         if "disque compact" not in normalize(txt):
             continue
         title, author = _parse_notice_text(txt)
-        if not title or name_similarity(author, artist_q) < ARTIST_MATCH_THRESHOLD:
+        # allow_subset=True : le catalogue écrit souvent un nom de scène seul
+        # ("Bourvil") quand l'artiste cible est le nom complet ("André
+        # Bourvil"), sim=0.70 < seuil strict. Sans cette tolérance (perdue
+        # dans le passage à la navigation par artiste), de nombreux artistes
+        # bien réels sont déclarés absents à tort (ex. Bourvil, régression
+        # constatée sur un run complet : 33% -> 21% de Found).
+        if not title or not artist_name_matches(author, artist_q, allow_subset=True):
             continue
         key = normalize(title)
         if not key or key in seen:
@@ -386,9 +392,14 @@ def _extract_part_dieu_cote(content_text: str) -> tuple[list[str], list[str]]:
             if not next_line:
                 continue
             # Le séparateur fiable est " - " (espaces autour). Splitter sur "-"
-            # nu casse les cotes type "782.42-AIR".
+            # nu casse les cotes type "782.42-AIR". Une cote ne contient JAMAIS
+            # elle-même " - " (espace-tiret-espace) ; en revanche le statut
+            # peut être multi-parties ("Prêté - Retour prévu le : ...") — donc
+            # on découpe sur la PREMIÈRE occurrence (pas la dernière, qui
+            # coupait la cote en 2 : "782.ARC 61 - Prêté" au lieu de
+            # "782.ARC 61" quand le statut avait lui-même un " - ").
             if " - " in next_line:
-                parts = next_line.rsplit(" - ", 1)
+                parts = next_line.split(" - ", 1)
                 cote = parts[0].strip()
                 status = parts[1].strip() if len(parts) > 1 else "Voir dispo"
             else:

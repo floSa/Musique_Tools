@@ -82,8 +82,10 @@ def subtract_album(full_list_str: str, own_album: str) -> str:
     """Retire de la liste « Titre - Cote, Titre - Cote » le segment dont le
     titre correspond à `own_album` (l'album propre de la ligne courante).
 
-    Le titre est la partie avant le dernier ' - ' du segment (la cote est
-    après). Comparaison normalisée (accents/casse)."""
+    Le titre est la partie avant le PREMIER ' - ' du segment (la cote est
+    après, et peut elle-même contenir ' - ', ex. "782.ARC 61 - Prêté" pour un
+    CD emprunté — un rsplit couperait alors le titre à tort). Comparaison
+    normalisée (accents/casse)."""
     if not full_list_str:
         return ""
     own_norm = normalize(own_album)
@@ -92,7 +94,7 @@ def subtract_album(full_list_str: str, own_album: str) -> str:
         seg = seg.strip()
         if not seg:
             continue
-        title = seg.rsplit(" - ", 1)[0] if " - " in seg else seg
+        title = seg.split(" - ", 1)[0] if " - " in seg else seg
         if own_norm and normalize(title) == own_norm:
             continue
         kept.append(seg)
